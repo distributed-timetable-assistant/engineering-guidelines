@@ -1,0 +1,5 @@
+[book]
+authors = ["Hasan Karimi"]
+language = "en"
+src = "."
+title = "DiTA Engineering Guidelines"
