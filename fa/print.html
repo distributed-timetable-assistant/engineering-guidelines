@@ -176,7 +176,39 @@
 
                 <div id="content" class="content">
                     <main>
-                        <div style="break-before: page; page-break-before: always;"></div><div style="break-before: page; page-break-before: always;"></div><h1 id="ساختار-پروژه-راست--rust-project-structuremd"><a class="header" href="#ساختار-پروژه-راست--rust-project-structuremd">ساختار پروژه راست — <code>rust-project-structure.md</code></a></h1>
+                        <h1 id="زبانهای-برنامهنویسی"><a class="header" href="#زبانهای-برنامهنویسی">زبان‌های برنامه‌نویسی</a></h1>
+<p>به بخش زبان‌های دستورالعمل‌های مهندسی Dita خوش آمدید. در اینجا استانداردها، بهترین روش‌ها و الزامات ابزار برای زبان‌های برنامه‌نویسی که استفاده می‌کنیم را خواهید یافت.</p>
+<h2 id="زبانهای-پشتیبانی-شده"><a class="header" href="#زبانهای-پشتیبانی-شده">زبان‌های پشتیبانی شده</a></h2>
+<ul>
+<li><a href="languages/./rust/README.html">Rust</a> - دستورالعمل‌هایی برای نوشتن سیستم‌های ایمن، همزمان و کاربردی در Rust.</li>
+</ul>
+<p><strong>اهداف این بخش:</strong></p>
+<ul>
+<li>تضمین یکپارچگی در تمام کدبیس‌ها.</li>
+<li>ترویج روش‌های اصولی مختص هر زبان.</li>
+<li>تعریف ابزارها و پیکربندی استاندارد (لینترها، فرمت‌کننده‌ها).</li>
+</ul>
+<div style="break-before: page; page-break-before: always;"></div><h1 id="دستورالعملهای-مهندسی-rust"><a class="header" href="#دستورالعملهای-مهندسی-rust">دستورالعمل‌های مهندسی Rust</a></h1>
+<p>این بخش استانداردها و بهترین روش‌ها را برای توسعه Rust در Dita شرح می‌دهد. هدف ما بهره‌گیری از تضمین‌های ایمنی Rust در عین حال حفظ کدی خوانا و قابل نگهداری است.</p>
+<h2 id="اصول-اصلی"><a class="header" href="#اصول-اصلی">اصول اصلی</a></h2>
+<ol>
+<li><strong>ایمنی در اولویت (Safety First)</strong>: از کد <code>unsafe</code> اجتناب کنید مگر اینکه کاملاً ضروری باشد و به شدت ایزوله و مستند شده باشد.</li>
+<li><strong>راست اصولی (Idiomatic Rust)</strong>: از قراردادهای استاندارد پیروی کنید. اگر در حال «جنگیدن با borrow checker» هستید، طراحی را بازنگری کنید.</li>
+<li><strong>مستندسازی (Documentation)</strong>: تمام APIهای عمومی باید مستند شوند.</li>
+</ol>
+<h2 id="ابزارها"><a class="header" href="#ابزارها">ابزارها</a></h2>
+<ul>
+<li><strong>فرمت‌کننده (Formatter)</strong>: ما از <code>rustfmt</code> با پیکربندی استاندارد استفاده می‌کنیم.</li>
+<li><strong>لینتر (Linter)</strong>: ما از <code>clippy</code> استفاده می‌کنیم. پایپ‌لاین‌های CI باید در صورت وجود هشدارهای clippy با خطا مواجه شوند.</li>
+</ul>
+<h2 id="موضوعات"><a class="header" href="#موضوعات">موضوعات</a></h2>
+<ul>
+<li><a href="languages/rust/./structure.html">ساختار پروژه</a> (اضافه خواهد شد)</li>
+<li><a href="languages/rust/./error-handling.html">مدیریت خطا</a> (اضافه خواهد شد)</li>
+<li><a href="languages/rust/./testing.html">تست</a> (اضافه خواهد شد)</li>
+<li><a href="languages/rust/./async.html">Async/Await</a> (اضافه خواهد شد)</li>
+</ul>
+<div style="break-before: page; page-break-before: always;"></div><h1 id="ساختار-پروژه-راست--rust-project-structuremd"><a class="header" href="#ساختار-پروژه-راست--rust-project-structuremd">ساختار پروژه راست — <code>rust-project-structure.md</code></a></h1>
 <p>در زیر یک طرح پیشنهادی مخزن برای سرویس‌های راست آورده شده است که از اصول <strong>Clean Architecture</strong> و سبک <strong>برنامه‌نویسی تابعی</strong> پیروی می‌کند.
 بعد از ساختار درختی، هدف و محتوای پذیرفته‌شده هر بخش را شرح می‌دهم تا نگهداری‌کنندگان و مشارکت‌کنندگان بدانند هر چیزی به کجا تعلق دارد.</p>
 <pre><code>/                                 # ریشه مخزن

@@ -175,7 +175,27 @@
 
                 <div id="content" class="content">
                     <main>
-                        
+                        <h1 id="دستورالعملهای-مهندسی-rust"><a class="header" href="#دستورالعملهای-مهندسی-rust">دستورالعمل‌های مهندسی Rust</a></h1>
+<p>این بخش استانداردها و بهترین روش‌ها را برای توسعه Rust در Dita شرح می‌دهد. هدف ما بهره‌گیری از تضمین‌های ایمنی Rust در عین حال حفظ کدی خوانا و قابل نگهداری است.</p>
+<h2 id="اصول-اصلی"><a class="header" href="#اصول-اصلی">اصول اصلی</a></h2>
+<ol>
+<li><strong>ایمنی در اولویت (Safety First)</strong>: از کد <code>unsafe</code> اجتناب کنید مگر اینکه کاملاً ضروری باشد و به شدت ایزوله و مستند شده باشد.</li>
+<li><strong>راست اصولی (Idiomatic Rust)</strong>: از قراردادهای استاندارد پیروی کنید. اگر در حال «جنگیدن با borrow checker» هستید، طراحی را بازنگری کنید.</li>
+<li><strong>مستندسازی (Documentation)</strong>: تمام APIهای عمومی باید مستند شوند.</li>
+</ol>
+<h2 id="ابزارها"><a class="header" href="#ابزارها">ابزارها</a></h2>
+<ul>
+<li><strong>فرمت‌کننده (Formatter)</strong>: ما از <code>rustfmt</code> با پیکربندی استاندارد استفاده می‌کنیم.</li>
+<li><strong>لینتر (Linter)</strong>: ما از <code>clippy</code> استفاده می‌کنیم. پایپ‌لاین‌های CI باید در صورت وجود هشدارهای clippy با خطا مواجه شوند.</li>
+</ul>
+<h2 id="موضوعات"><a class="header" href="#موضوعات">موضوعات</a></h2>
+<ul>
+<li><a href="./structure.html">ساختار پروژه</a> (اضافه خواهد شد)</li>
+<li><a href="./error-handling.html">مدیریت خطا</a> (اضافه خواهد شد)</li>
+<li><a href="./testing.html">تست</a> (اضافه خواهد شد)</li>
+<li><a href="./async.html">Async/Await</a> (اضافه خواهد شد)</li>
+</ul>
+
                     </main>
 
                     <nav class="nav-wrapper" aria-label="Page navigation">

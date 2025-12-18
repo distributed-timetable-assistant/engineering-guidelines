@@ -176,7 +176,39 @@
 
                 <div id="content" class="content">
                     <main>
-                        <div style="break-before: page; page-break-before: always;"></div><div style="break-before: page; page-break-before: always;"></div><h1 id="rust-project-structure--rust-project-structuremd"><a class="header" href="#rust-project-structure--rust-project-structuremd">Rust project structure — <code>rust-project-structure.md</code></a></h1>
+                        <h1 id="programming-languages"><a class="header" href="#programming-languages">Programming Languages</a></h1>
+<p>Welcome to the Languages section of the Dita Engineering Guidelines. Here you will find specific standards, best practices, and tooling requirements for the programming languages we use.</p>
+<h2 id="supported-languages"><a class="header" href="#supported-languages">Supported Languages</a></h2>
+<ul>
+<li><a href="languages/./rust/README.html">Rust</a> - Guidelines for writing safe, concurrent, and practical systems in Rust.</li>
+</ul>
+<p><strong>Goals of this section:</strong></p>
+<ul>
+<li>Ensure consistency across codebases.</li>
+<li>Promote language-specific idiomatic practices.</li>
+<li>Define standard tooling and configuration (linters, formatters).</li>
+</ul>
+<div style="break-before: page; page-break-before: always;"></div><h1 id="rust-engineering-guidelines"><a class="header" href="#rust-engineering-guidelines">Rust Engineering Guidelines</a></h1>
+<p>This section details the standards and best practices for Rust development at Dita. Our goal is to leverage Rust's safety guarantees while maintaining readable and maintainable code.</p>
+<h2 id="core-principles"><a class="header" href="#core-principles">Core Principles</a></h2>
+<ol>
+<li><strong>Safety First</strong>: Avoid <code>unsafe</code> code unless absolutely necessary and strictly isolated/documented.</li>
+<li><strong>Idiomatic Rust</strong>: Follow standard conventions. If "fighting the borrow checker", reconsider the design.</li>
+<li><strong>Documentation</strong>: All public APIs must be documented.</li>
+</ol>
+<h2 id="tooling"><a class="header" href="#tooling">Tooling</a></h2>
+<ul>
+<li><strong>Formatter</strong>: We use <code>rustfmt</code> with the standard configuration.</li>
+<li><strong>Linter</strong>: We use <code>clippy</code>. CI pipelines should fail on clippy warnings.</li>
+</ul>
+<h2 id="topics"><a class="header" href="#topics">Topics</a></h2>
+<ul>
+<li><a href="languages/rust/./structure.html">Project Structure</a> (To be added)</li>
+<li><a href="languages/rust/./error-handling.html">Error Handling</a> (To be added)</li>
+<li><a href="languages/rust/./testing.html">Testing</a> (To be added)</li>
+<li><a href="languages/rust/./async.html">Async/Await</a> (To be added)</li>
+</ul>
+<div style="break-before: page; page-break-before: always;"></div><h1 id="rust-project-structure--rust-project-structuremd"><a class="header" href="#rust-project-structure--rust-project-structuremd">Rust project structure — <code>rust-project-structure.md</code></a></h1>
 <p>Below is a recommended repository layout for a Rust service that follows <strong>Clean Architecture</strong> principles and a <strong>functional-programming-friendly</strong> style.
 After the tree I describe the purpose and accepted contents of each entry so maintainers and contributors know what belongs where.</p>
 <pre><code>/                                 # repo root
