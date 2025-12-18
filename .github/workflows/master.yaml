@@ -14,6 +14,7 @@ jobs:
       - run: chmod +x mdbook
       - run: sudo mv mdbook /usr/local/bin/mdbook
       - run: mdbook build src/en -d ../../book/en
+      - run: mdbook build src/fa -d ../../book/fa
       - run: cp src/static/index.html book/index.html
       - name: Upload Static Pages
         uses: actions/upload-artifact@v4
