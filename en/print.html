@@ -322,6 +322,250 @@ After the tree I describe the purpose and accepted contents of each entry so mai
 ├── Cargo.toml
 └── README.md
 </code></pre>
+<div style="break-before: page; page-break-before: always;"></div><h1 id="development-guidelines"><a class="header" href="#development-guidelines">Development Guidelines</a></h1>
+<ul>
+<li><a href="development/./git-workflow.html">Git Workflow</a></li>
+<li><a href="development/./commit-guidelines.html">Commit Guidelines</a></li>
+<li><a href="development/./branching-strategy.html">Branching Strategy</a></li>
+<li><a href="development/./issue-management.html">Issue Management</a></li>
+<li><a href="development/./adr-linking.html">ADR Linking</a></li>
+</ul>
+<div style="break-before: page; page-break-before: always;"></div><h1 id="architecture-decision-records-adrs"><a class="header" href="#architecture-decision-records-adrs">Architecture Decision Records (ADRs)</a></h1>
+<p>Architecture Decision Records (ADRs) are short text documents that capture an important architectural decision made along with its context and consequences. We use ADRs to keep track of the history of our decisions and the reasoning behind them.</p>
+<h2 id="file-location"><a class="header" href="#file-location">File Location</a></h2>
+<p>All ADRs must be placed in the <a href="https://github.com/distributed-timetable-assistant/doc/tree/master/src/en/adr/">doc</a> project.</p>
+<h2 id="naming-convention"><a class="header" href="#naming-convention">Naming Convention</a></h2>
+<p>ADR files should be named using a sequential number and a short descriptive title, separated by a hyphen. The format is <code>NNNNNN-title-of-the-decision.md</code>.</p>
+<p>Example: <code>000001-record-architecture-decisions.md</code></p>
+<h2 id="statuses"><a class="header" href="#statuses">Statuses</a></h2>
+<p>An ADR can have one of the following statuses:</p>
+<ul>
+<li><strong>Proposed</strong>: The decision is being discussed and has not yet been agreed upon.</li>
+<li><strong>Accepted</strong>: The decision has been agreed upon and should be implemented.</li>
+<li><strong>Rejected</strong>: The decision was proposed and discussed but was not accepted. The record is kept for historical context.</li>
+<li><strong>Deprecated</strong>: The decision was accepted in the past but is no longer applicable or recommended.</li>
+<li><strong>Superseded</strong>: The decision has been replaced by a newer decision. The new ADR should reference the superseded one.</li>
+</ul>
+<h2 id="template"><a class="header" href="#template">Template</a></h2>
+<p>Use the following template for new ADRs:</p>
+<pre><code class="language-markdown"># NNNN. Title of the Decision
+
+Date: YYYY-MM-DD
+
+## Status
+
+[Proposed | Accepted | Rejected | Deprecated | Superseded]
+
+## Context
+
+What is the issue that we're seeing that is motivating this decision or change?
+
+## Decision
+
+What is the change that we're proposing and/or doing?
+
+## Consequences
+
+What becomes easier or more difficult to do and any risks introduced by the change that will need to be mitigated.
+</code></pre>
+<h2 id="how-to-submit"><a class="header" href="#how-to-submit">How to Submit</a></h2>
+<ol>
+<li>Create a new branch for your ADR.</li>
+<li>Add the new ADR file in <a href="https://github.com/distributed-timetable-assistant/doc/tree/master/src/en/adr/">doc</a> project.</li>
+<li>Ensure the file name uses the next available number.</li>
+<li>Submit a Pull Request for review.</li>
+</ol>
+<div style="break-before: page; page-break-before: always;"></div><h1 id="git-workflow"><a class="header" href="#git-workflow">Git Workflow</a></h1>
+<p>This section outlines our Git workflow, integrating branching, committing, and issue management.</p>
+<ol>
+<li><strong>Branching</strong>: Create a new branch for each task. See <a href="development/./branching-strategy.html">Branching Strategy</a>.</li>
+<li><strong>Committing</strong>: Write clear, conventional commit messages. See <a href="development/./commit-guidelines.html">Commit Guidelines</a>.</li>
+<li><strong>Issues</strong>: Link your work to specific issues. See <a href="development/./issue-management.html">Issue Management</a>.</li>
+<li><strong>ADRs</strong>: Reference architectural decisions if applicable. See <a href="development/./adr-linking.html">ADR Linking</a>.</li>
+</ol>
+<h2 id="workflow-steps"><a class="header" href="#workflow-steps">Workflow Steps</a></h2>
+<ol>
+<li>Pick an issue (or create one).</li>
+<li>Create a branch from <code>dev</code> (for new features) or <code>main</code> (for incident fixes).</li>
+<li>Implement changes.</li>
+<li>Commit changes following the <a href="development/./commit-guidelines.html">Commit Guidelines</a>.</li>
+<li>Push branch and open a Pull Request.</li>
+<li>Ensure CI checks (including <code>commitlint</code>) pass.</li>
+</ol>
+<div style="break-before: page; page-break-before: always;"></div><h1 id="branching-strategy"><a class="header" href="#branching-strategy">Branching Strategy</a></h1>
+<p>We use a strategy allowing for parallel development using short-lived branches. The repository has two persistent branches: <code>main</code> and <code>dev</code>.</p>
+<h2 id="core-branches"><a class="header" href="#core-branches">Core Branches</a></h2>
+<ul>
+<li><strong>main</strong>: The production-ready state. Contains stable code.</li>
+<li><strong>dev</strong>: The main development branch. All new features are merged here first.</li>
+</ul>
+<h2 id="branch-naming--strategy"><a class="header" href="#branch-naming--strategy">Branch Naming &amp; Strategy</a></h2>
+<h3 id="feature-branches"><a class="header" href="#feature-branches">Feature Branches</a></h3>
+<p>Used for adding new functionality.</p>
+<ul>
+<li><strong>Source Branch</strong>: <code>dev</code></li>
+<li><strong>Naming Convention</strong>: Must include the issue number.</li>
+<li><strong>Format</strong>: <code>feat/issue-&lt;number&gt;/&lt;short-description&gt;</code></li>
+<li><strong>Example</strong>: <code>feat/issue-42/add-login-page</code></li>
+</ul>
+<h3 id="bug-fix-branches"><a class="header" href="#bug-fix-branches">Bug Fix Branches</a></h3>
+<p>Used for fixing critical bugs or incidents in production.</p>
+<ul>
+<li><strong>Source Branch</strong>: <code>main</code> (preferred for hotfixes/incidents)</li>
+<li><strong>Naming Convention</strong>: Must include the incident number.</li>
+<li><strong>Format</strong>: <code>fix/incident-&lt;number&gt;/&lt;short-description&gt;</code></li>
+<li><strong>Example</strong>: <code>fix/incident-808/resolve-memory-leak</code></li>
+</ul>
+<h3 id="other-branches"><a class="header" href="#other-branches">Other Branches</a></h3>
+<p>For documentation, refactoring, or chores.</p>
+<ul>
+<li><strong>Source Branch</strong>: <code>dev</code> (usually)</li>
+<li><strong>Format</strong>: <code>type/&lt;scope&gt;/&lt;short-description&gt;</code> or <code>type/issue-&lt;number&gt;/&lt;short-description&gt;</code></li>
+<li><strong>Example</strong>: <code>docs/readme/update-setup</code></li>
+</ul>
+<p><em>Branches should be deleted after merging.</em></p>
+<div style="break-before: page; page-break-before: always;"></div><h1 id="commit-guidelines"><a class="header" href="#commit-guidelines">Commit Guidelines</a></h1>
+<p>High-quality commit messages are essential for maintaining a healthy codebase. They help new developers understand context, simplify debugging with <code>git blame</code>, and allow for automated changelog generation.</p>
+<h2 id="message-structure"><a class="header" href="#message-structure">Message Structure</a></h2>
+<p>A commit message consists of a <strong>Header</strong>, <strong>Body</strong>, and <strong>Footer</strong>.</p>
+<pre><code class="language-text">&lt;type&gt;(&lt;scope&gt;): &lt;subject&gt;
+
+&lt;body (optional, but recommended)&gt;
+
+&lt;footer (optional)&gt;
+</code></pre>
+<hr />
+<h2 id="1-the-header"><a class="header" href="#1-the-header">1. The Header</a></h2>
+<p>The header is mandatory and must be <strong>50 characters or less</strong>.</p>
+<h3 id="type"><a class="header" href="#type">Type</a></h3>
+<p>Must be one of the following:</p>
+<div class="table-wrapper"><table><thead><tr><th style="text-align: left">Type</th><th style="text-align: left">Description</th><th style="text-align: left">SemVer Impication</th></tr></thead><tbody>
+<tr><td style="text-align: left"><strong>feat</strong></td><td style="text-align: left">A new feature</td><td style="text-align: left"><code>MINOR</code></td></tr>
+<tr><td style="text-align: left"><strong>fix</strong></td><td style="text-align: left">A bug fix</td><td style="text-align: left"><code>PATCH</code></td></tr>
+<tr><td style="text-align: left"><strong>docs</strong></td><td style="text-align: left">Documentation changes</td><td style="text-align: left"><code>PATCH</code></td></tr>
+<tr><td style="text-align: left"><strong>style</strong></td><td style="text-align: left">Formatting, missing semi-colons, white-space (no code change)</td><td style="text-align: left"><code>PATCH</code></td></tr>
+<tr><td style="text-align: left"><strong>refactor</strong></td><td style="text-align: left">Code change that neither fixes a bug nor adds a feature</td><td style="text-align: left"><code>PATCH</code></td></tr>
+<tr><td style="text-align: left"><strong>perf</strong></td><td style="text-align: left">A code change that improves performance</td><td style="text-align: left"><code>PATCH</code></td></tr>
+<tr><td style="text-align: left"><strong>test</strong></td><td style="text-align: left">Adding missing tests or correcting existing tests</td><td style="text-align: left"><code>PATCH</code></td></tr>
+<tr><td style="text-align: left"><strong>build</strong></td><td style="text-align: left">Changes that affect the build system or external dependencies</td><td style="text-align: left"><code>PATCH</code></td></tr>
+<tr><td style="text-align: left"><strong>ci</strong></td><td style="text-align: left">Changes to our CI configuration files and scripts</td><td style="text-align: left"><code>PATCH</code></td></tr>
+<tr><td style="text-align: left"><strong>chore</strong></td><td style="text-align: left">Other changes that don't modify src or test files</td><td style="text-align: left"><code>PATCH</code></td></tr>
+<tr><td style="text-align: left"><strong>revert</strong></td><td style="text-align: left">Reverts a previous commit</td><td style="text-align: left"><code>PATCH</code></td></tr>
+</tbody></table>
+</div>
+<h3 id="scope"><a class="header" href="#scope">Scope</a></h3>
+<p>The scope is optional but recommended. It specifies the "place" of the commit change.</p>
+<ul>
+<li><strong>Examples</strong>: <code>auth</code>, <code>api</code>, <code>ui</code>, <code>database</code>, <code>deps</code>.</li>
+<li><strong>Format</strong>: <code>feat(auth): ...</code></li>
+</ul>
+<h3 id="subject"><a class="header" href="#subject">Subject</a></h3>
+<p>The subject contains a succinct description of the change.</p>
+<ul>
+<li><strong>Imperative mood</strong>: "Add" not "Added", "Fix" not "Fixed".</li>
+<li><strong>No period</strong>: Do not end with <code>.</code>.</li>
+<li><strong>LowerCase</strong>: First letter is usually lowercase (Conventional Commits doesn't enforce this, but consistency is key. <em>Note: "Seven Rules" says capitalized, Conventional Commits examples often show lowercase. We will follow <strong>lowercase</strong> to match the <code>commitlint</code> default config unless configured otherwise.</em>). -&gt; <em>Self-correction: The previous file said "Capitalize". "Seven Rules" says Capitalize. Conventional Commits is agnostic. Let's stick to <strong>Capitalize</strong> as it looks more professional in Git logs, matching the previous rule.</em></li>
+</ul>
+<hr />
+<h2 id="2-the-body"><a class="header" href="#2-the-body">2. The Body</a></h2>
+<p>The body is optional but strongly recommended for non-trivial changes.</p>
+<ul>
+<li><strong>Wrap at 72 characters</strong>: This ensures readability in all environments.</li>
+<li><strong>Motivation</strong>: Explain <em>why</em> you are making this change.</li>
+<li><strong>Contrast</strong>: Compare the new behavior with the previous behavior.</li>
+<li><strong>Explanation</strong>: Explain <em>what</em> and <em>why</em>, not <em>how</em> (the code explains the how).</li>
+</ul>
+<hr />
+<h2 id="3-the-footer"><a class="header" href="#3-the-footer">3. The Footer</a></h2>
+<p>The footer is used for meta-information.</p>
+<h3 id="breaking-changes"><a class="header" href="#breaking-changes">Breaking Changes</a></h3>
+<p>All breaking changes have to be mentioned in the footer with the description of the change, justification and migration notes.</p>
+<ul>
+<li><strong>Format</strong>: Start with <code>BREAKING CHANGE: &lt;description&gt;</code></li>
+<li><strong>Alternative</strong>: Add <code>!</code> after the type/scope in the header (e.g., <code>feat(api)!: ...</code>).</li>
+</ul>
+<h3 id="references"><a class="header" href="#references">References</a></h3>
+<ul>
+<li><strong>Issues</strong>: <code>Closes #123</code>, <code>Fixes #42</code>.</li>
+<li><strong>ADRs</strong>: <code>ADR: 004</code>.</li>
+</ul>
+<h3 id="collaboration"><a class="header" href="#collaboration">Collaboration</a></h3>
+<ul>
+<li><strong>Co-authored-by</strong>: <code>Co-authored-by: Name &lt;name@example.com&gt;</code></li>
+</ul>
+<hr />
+<h2 id="examples"><a class="header" href="#examples">Examples</a></h2>
+<h3 id="feature-with-scope"><a class="header" href="#feature-with-scope">Feature with Scope</a></h3>
+<pre><code class="language-text">feat(auth): Add Google OAuth login support
+
+Add support for Google OAuth 2.0 to allow users to sign up
+and log in using their Google accounts. This simplifies the
+onboarding process.
+
+Closes #101
+</code></pre>
+<h3 id="bug-fix-with-breaking-change"><a class="header" href="#bug-fix-with-breaking-change">Bug Fix with Breaking Change</a></h3>
+<pre><code class="language-text">fix(api): Handle null values in user response
+
+Previously, the API crashed when the user had no address.
+Now, it returns a null address field instead.
+
+BREAKING CHANGE: The `address` field in the user object
+can now be null. Clients must update their code to handle
+this case.
+</code></pre>
+<h3 id="documentation"><a class="header" href="#documentation">Documentation</a></h3>
+<pre><code class="language-text">docs(readme): Update installation instructions
+</code></pre>
+<h3 id="revert"><a class="header" href="#revert">Revert</a></h3>
+<pre><code class="language-text">revert: let us never speak of this again
+
+This reverts commit 6b2a412.
+</code></pre>
+<div style="break-before: page; page-break-before: always;"></div><h1 id="issue-management"><a class="header" href="#issue-management">Issue Management</a></h1>
+<p>Properly linking Git activity to issues ensures a transparent history and automated workflow states.</p>
+<h2 id="linking-in-commits"><a class="header" href="#linking-in-commits">Linking in Commits</a></h2>
+<p>Reference issues in your commit footer.</p>
+<h3 id="closing-issues"><a class="header" href="#closing-issues">Closing Issues</a></h3>
+<p>To automatically close an issue when the commit is merged:</p>
+<pre><code class="language-text">Closes #123
+</code></pre>
+<p>Or for multiple issues:</p>
+<pre><code class="language-text">Closes #123, #245
+</code></pre>
+<h3 id="referencing-issues"><a class="header" href="#referencing-issues">Referencing Issues</a></h3>
+<p>To simply reference an issue without closing it (e.g., "See also"):</p>
+<pre><code class="language-text">Refs #123
+</code></pre>
+<h2 id="linking-in-pull-requests"><a class="header" href="#linking-in-pull-requests">Linking in Pull Requests</a></h2>
+<p>In the description of your Pull Request, you can also use keywords to link issues.</p>
+<ul>
+<li>"Closes #123"</li>
+<li>"Fixes #123"</li>
+<li>"Resolves #123"</li>
+</ul>
+<p>This creates a link in GitHub and automatically closes the issue when the PR is merged into the default branch.</p>
+<div style="break-before: page; page-break-before: always;"></div><h1 id="adr-linking"><a class="header" href="#adr-linking">ADR Linking</a></h1>
+<p>Architecture Decision Records (ADRs) explain the "why" behind significant changes. It is crucial to link code changes to the decisions that authorized them.</p>
+<h2 id="linking-adrs-in-commits"><a class="header" href="#linking-adrs-in-commits">Linking ADRs in Commits</a></h2>
+<p>If a commit implements a specific ADR, reference it in the footer of the commit message, similar to issues.</p>
+<p>Format:</p>
+<pre><code class="language-text">ADR: &lt;ADR-Number&gt;
+</code></pre>
+<p>Example:</p>
+<pre><code class="language-text">feat(database): migrate to postgres
+
+We are migrating to Postgres to support better transaction handling as decided.
+
+Closes #45
+ADR: 0012
+</code></pre>
+<h2 id="linking-adrs-in-issuesprs"><a class="header" href="#linking-adrs-in-issuesprs">Linking ADRs in Issues/PRs</a></h2>
+<p>When opening an Issue or PR that relates to an architectural decision, include a link to the ADR file in the description.</p>
+<p>Example:</p>
+<blockquote>
+<p>Implements <a href="development/../architecture/decisions/0012-use-postgres.html">ADR-0012: Use Postgres</a></p>
+</blockquote>
 
                     </main>
 
