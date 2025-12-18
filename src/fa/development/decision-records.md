@@ -4,7 +4,7 @@
 
 ## مکان فایل
 
-تمام ADRها باید در پروژه [doc](https://github.com/distributed-timetable-assistant/doc/tree/master/src/en/architecture/adr/) قرار گیرند.
+تمام ADRها باید در پروژه [doc](https://github.com/distributed-timetable-assistant/doc/tree/master/src/fa/architecture/adr/) قرار گیرند.
 
 ## قرارداد نام‌گذاری
 
