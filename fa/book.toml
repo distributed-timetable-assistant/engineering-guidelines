@@ -1,0 +1,8 @@
+[book]
+authors = ["Hasan Karimi"]
+language = "fa"
+src = "."
+title = "راهنمای مهندسی DiTA"
+
+[output.html]
+additional-js = ["lang-switch.js"]
