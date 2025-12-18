@@ -10,7 +10,7 @@ This section outlines our Git workflow, integrating branching, committing, and i
 ## Workflow Steps
 
 1.  Pick an issue (or create one).
-2.  Create a branch from `dev` (for new features) or `main` (for incident fixes).
+2.  Create a branch from `dev` (for new features) or `master` (for incident fixes).
 3.  Implement changes.
 4.  Commit changes following the [Commit Guidelines](./commit-guidelines.md).
 5.  Push branch and open a Pull Request.

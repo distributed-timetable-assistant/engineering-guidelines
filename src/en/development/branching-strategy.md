@@ -4,7 +4,7 @@ We use a strategy allowing for parallel development using short-lived branches. 
 
 ## Core Branches
 
--   **main**: The production-ready state. Contains stable code.
+-   **master**: The production-ready state. Contains stable code.
 -   **dev**: The main development branch. All new features are merged here first.
 
 ## Branch Naming & Strategy
@@ -20,7 +20,7 @@ Used for adding new functionality.
 ### Bug Fix Branches
 Used for fixing critical bugs or incidents in production.
 
--   **Source Branch**: `main` (preferred for hotfixes/incidents)
+-   **Source Branch**: `master` (preferred for hotfixes/incidents)
 -   **Naming Convention**: Must include the incident number.
 -   **Format**: `fix/incident-<number>/<short-description>`
 -   **Example**: `fix/incident-808/resolve-memory-leak`
