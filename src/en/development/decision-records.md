@@ -4,7 +4,7 @@ Architecture Decision Records (ADRs) are short text documents that capture an im
 
 ## File Location
 
-All ADRs must be placed in the [doc](https://github.com/distributed-timetable-assistant/doc/tree/master/src/en/adr/) project.
+All ADRs must be placed in the [doc](https://github.com/distributed-timetable-assistant/doc/tree/master/src/en/architecture/adr/) project.
 
 ## Naming Convention
 
