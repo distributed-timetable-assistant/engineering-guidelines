@@ -3,3 +3,6 @@ authors = ["Hasan Karimi"]
 language = "en"
 src = "."
 title = "DiTA Engineering Guidelines"
+
+[output.html]
+additional-js = ["lang-switch.js"]

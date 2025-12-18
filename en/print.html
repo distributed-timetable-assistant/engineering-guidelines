@@ -386,7 +386,7 @@ What becomes easier or more difficult to do and any risks introduced by the chan
 <h2 id="workflow-steps"><a class="header" href="#workflow-steps">Workflow Steps</a></h2>
 <ol>
 <li>Pick an issue (or create one).</li>
-<li>Create a branch from <code>dev</code> (for new features) or <code>main</code> (for incident fixes).</li>
+<li>Create a branch from <code>dev</code> (for new features) or <code>master</code> (for incident fixes).</li>
 <li>Implement changes.</li>
 <li>Commit changes following the <a href="development/./commit-guidelines.html">Commit Guidelines</a>.</li>
 <li>Push branch and open a Pull Request.</li>
@@ -396,7 +396,7 @@ What becomes easier or more difficult to do and any risks introduced by the chan
 <p>We use a strategy allowing for parallel development using short-lived branches. The repository has two persistent branches: <code>main</code> and <code>dev</code>.</p>
 <h2 id="core-branches"><a class="header" href="#core-branches">Core Branches</a></h2>
 <ul>
-<li><strong>main</strong>: The production-ready state. Contains stable code.</li>
+<li><strong>master</strong>: The production-ready state. Contains stable code.</li>
 <li><strong>dev</strong>: The main development branch. All new features are merged here first.</li>
 </ul>
 <h2 id="branch-naming--strategy"><a class="header" href="#branch-naming--strategy">Branch Naming &amp; Strategy</a></h2>
@@ -411,7 +411,7 @@ What becomes easier or more difficult to do and any risks introduced by the chan
 <h3 id="bug-fix-branches"><a class="header" href="#bug-fix-branches">Bug Fix Branches</a></h3>
 <p>Used for fixing critical bugs or incidents in production.</p>
 <ul>
-<li><strong>Source Branch</strong>: <code>main</code> (preferred for hotfixes/incidents)</li>
+<li><strong>Source Branch</strong>: <code>master</code> (preferred for hotfixes/incidents)</li>
 <li><strong>Naming Convention</strong>: Must include the incident number.</li>
 <li><strong>Format</strong>: <code>fix/incident-&lt;number&gt;/&lt;short-description&gt;</code></li>
 <li><strong>Example</strong>: <code>fix/incident-808/resolve-memory-leak</code></li>
@@ -601,6 +601,7 @@ ADR: 0012
         <script src="book.js"></script>
 
         <!-- Custom JS scripts -->
+        <script src="lang-switch.js"></script>
 
         <script>
         window.addEventListener('load', function() {
