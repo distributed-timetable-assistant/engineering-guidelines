@@ -27,7 +27,7 @@ An ADR can have one of the following statuses:
 Use the following template for new ADRs:
 
 ```markdown
-# NNNN. Title of the Decision
+# NNNNNN. Title of the Decision
 
 Date: YYYY-MM-DD
 

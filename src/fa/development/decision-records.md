@@ -27,25 +27,25 @@
 از قالب زیر برای ADRهای جدید استفاده کنید:
 
 ```markdown
-# NNNN. Title of the Decision
+# NNNNNN. عنوان تصمیم
 
-Date: YYYY-MM-DD
+تاریخ: YYYY-MM-DD
 
-## Status
+## وضعیت
 
-[Proposed | Accepted | Rejected | Deprecated | Superseded]
+[پیشنهادی | پذیرفته‌شده | ردشده | منسوخ‌شده | جایگزین‌شده]
 
-## Context
+## زمینه (Context)
 
-What is the issue that we're seeing that is motivating this decision or change?
+مسئله یا شرایطی که باعث شده این تصمیم یا تغییر مطرح شود چیست؟
 
-## Decision
+## تصمیم
 
-What is the change that we're proposing and/or doing?
+تغییر یا اقدامی که قصد داریم پیشنهاد دهیم و/یا اجرا کنیم چیست؟
 
-## Consequences
+## پیامدها (Consequences)
 
-What becomes easier or more difficult to do and any risks introduced by the change that will need to be mitigated.
+چه کارهایی با این تصمیم ساده‌تر یا دشوارتر می‌شوند و چه ریسک‌هایی ایجاد می‌شود که باید برای آن‌ها راهکار کاهش (mitigation) در نظر گرفته شود.
 ```
 
 ## نحوه ارسال
