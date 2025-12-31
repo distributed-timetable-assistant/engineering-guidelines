@@ -4,7 +4,7 @@ Welcome to the Languages section of the Dita Engineering Guidelines. Here you wi
 
 ## Supported Languages
 
-*   [Rust](./rust/README.md) - Guidelines for writing safe, concurrent, and practical systems in Rust.
+*   [Rust](./rust/index.html) - Guidelines for writing safe, concurrent, and practical systems in Rust.
 
 **Goals of this section:**
 *   Ensure consistency across codebases.
