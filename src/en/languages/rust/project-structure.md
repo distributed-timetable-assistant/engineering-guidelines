@@ -51,14 +51,14 @@ After the tree I describe the purpose and accepted contents of each entry so mai
 │   │   ├── domain/               # Entities, ValueObjects, domain errors, domain events
 │   │   │   ├── student.rs
 │   │   │   ├── instructor.rs
-│   │   │   ├── errors.rs
+│   │   │   ├── error.rs
 │   │   │   └── mod.rs
 │   │   │
 │   │   ├── ports/                # Abstract traits (repositories, message brokers, cache)
 │   │   │   ├── student_repository.rs
 │   │   │   ├── instructor_repository.rs
 │   │   │   ├── message_broker.rs
-│   │   │   ├── errors.rs
+│   │   │   ├── error.rs
 │   │   │   └── mod.rs
 │   │   │
 │   │   └── usecases/             # Application layer orchestration
