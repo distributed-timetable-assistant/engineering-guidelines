@@ -58,6 +58,7 @@
 │   │   │   ├── student_repository.rs
 │   │   │   ├── instructor_repository.rs
 │   │   │   ├── message_broker.rs
+│   │   │   ├── errors.rs
 │   │   │   └── mod.rs
 │   │   │
 │   │   └── usecases/             # ارکستراسیون لایه اپلیکیشن
