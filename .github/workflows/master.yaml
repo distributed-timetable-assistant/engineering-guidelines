@@ -8,7 +8,7 @@ jobs:
   build:
     runs-on: ubuntu-latest
     steps:
-      - uses: actions/checkout@v4
+      - uses: actions/checkout@v7
       - run: curl -LO https://github.com/rust-lang/mdBook/releases/download/${{ vars.MDBOOK_VERSION }}/mdbook-${{ vars.MDBOOK_VERSION }}-x86_64-unknown-linux-gnu.tar.gz
       - run: tar -xzf mdbook-${{ vars.MDBOOK_VERSION }}-x86_64-unknown-linux-gnu.tar.gz
       - run: chmod +x mdbook
@@ -27,7 +27,7 @@ jobs:
     runs-on: ubuntu-latest
     steps:
       - name: Checkout
-        uses: actions/checkout@v4
+        uses: actions/checkout@v7
       - name: Download Static Pages
         uses: actions/download-artifact@v4
         with:
