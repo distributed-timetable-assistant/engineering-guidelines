@@ -17,7 +17,7 @@ jobs:
       - run: mdbook build src/fa -d ../../book/fa
       - run: cp src/static/index.html book/index.html
       - name: Upload Static Pages
-        uses: actions/upload-artifact@v8
+        uses: actions/upload-artifact@v7
         with:
           name: static-pages
           path: book
