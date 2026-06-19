@@ -8,9 +8,9 @@ All ADRs must be placed in the [doc](https://github.com/distributed-timetable-as
 
 ## Naming Convention
 
-ADR files should be named using a sequential number and a short descriptive title, separated by a hyphen. The format is `NNNNNN-title-of-the-decision.md`.
+ADR files should be named using a sequential number and a short descriptive title, separated by a hyphen. The format is `NNNN-title-of-the-decision.md`.
 
-Example: `000001-record-architecture-decisions.md`
+Example: `0001-record-architecture-decisions.md`
 
 ## Statuses
 
@@ -27,7 +27,7 @@ An ADR can have one of the following statuses:
 Use the following template for new ADRs:
 
 ```markdown
-# NNNNNN. Title of the Decision
+# NNNN. Title of the Decision
 
 Date: YYYY-MM-DD
 
