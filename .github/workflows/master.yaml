@@ -17,7 +17,7 @@ jobs:
       - run: mdbook build src/fa -d ../../book/fa
       - run: cp src/static/index.html book/index.html
       - name: Upload Static Pages
-        uses: actions/upload-artifact@v4
+        uses: actions/upload-artifact@v8
         with:
           name: static-pages
           path: book
@@ -29,7 +29,7 @@ jobs:
       - name: Checkout
         uses: actions/checkout@v7
       - name: Download Static Pages
-        uses: actions/download-artifact@v4
+        uses: actions/download-artifact@v8
         with:
           name: static-pages
           path: book
