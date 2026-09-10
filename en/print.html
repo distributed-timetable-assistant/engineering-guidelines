@@ -203,7 +203,8 @@
 </ul>
 <h2 id="topics"><a class="header" href="#topics">Topics</a></h2>
 <ul>
-<li><a href="languages/rust/./structure.html">Project Structure</a> (To be added)</li>
+<li><a href="languages/rust/./project-structure.html">Project Structure</a></li>
+<li><a href="languages/rust/./configuration.html">Service Configuration</a></li>
 <li><a href="languages/rust/./error-handling.html">Error Handling</a> (To be added)</li>
 <li><a href="languages/rust/./testing.html">Testing</a> (To be added)</li>
 <li><a href="languages/rust/./async.html">Async/Await</a> (To be added)</li>
@@ -355,6 +356,192 @@ After the tree I describe the purpose and accepted contents of each entry so mai
 ├── Cargo.toml
 └── README.md
 </code></pre>
+<div style="break-before: page; page-break-before: always;"></div><h1 id="rust-service-configuration"><a class="header" href="#rust-service-configuration">Rust Service Configuration</a></h1>
+<p>All DiTA Rust backend services must follow this configuration loading pattern.</p>
+<p>Configuration loading must be implemented under the infrastructure layer:</p>
+<pre><code class="language-text">src/
+└── infrastructure/
+    └── config_loader.rs
+</code></pre>
+<p>The implementation must use the <a href="https://docs.rs/config"><code>config</code></a> crate for configuration sources and <code>serde</code> for typed deserialization.</p>
+<h2 id="default-configuration"><a class="header" href="#default-configuration">Default Configuration</a></h2>
+<p>The default configuration must be embedded into the binary using <code>include_str!</code>:</p>
+<pre><pre class="playground"><code class="language-rust"><span class="boring">#![allow(unused)]
+</span><span class="boring">fn main() {
+</span>static DEFAULT_YAML: &amp;str = include_str!("../../config.yaml");
+<span class="boring">}</span></code></pre></pre>
+<p>It must be registered as the first configuration source:</p>
+<pre><pre class="playground"><code class="language-rust"><span class="boring">#![allow(unused)]
+</span><span class="boring">fn main() {
+</span>Config::builder()
+    .add_source(File::from_str(DEFAULT_YAML, FileFormat::Yaml))
+<span class="boring">}</span></code></pre></pre>
+<p>The default configuration therefore does not depend on the presence of the file at runtime.</p>
+<h2 id="configuration-files"><a class="header" href="#configuration-files">Configuration Files</a></h2>
+<p>Configuration files are loaded after the embedded defaults.</p>
+<p>The environment is determined by <code>APP_ENV</code>:</p>
+<pre><pre class="playground"><code class="language-rust"><span class="boring">#![allow(unused)]
+</span><span class="boring">fn main() {
+</span>let env = env::var("APP_ENV").unwrap_or_else(|_| "dev".into());
+<span class="boring">}</span></code></pre></pre>
+<p>If no explicit configuration path is provided, the loader must consider these paths in order:</p>
+<pre><code class="language-text">./config.yml
+./config-{APP_ENV}.yml
+/etc/{application-name}/config.yml
+</code></pre>
+<p>The application name must be obtained from Cargo:</p>
+<pre><pre class="playground"><code class="language-rust"><span class="boring">#![allow(unused)]
+</span><span class="boring">fn main() {
+</span>let app_name = env!("CARGO_PKG_NAME");
+<span class="boring">}</span></code></pre></pre>
+<p>The default paths are optional:</p>
+<pre><pre class="playground"><code class="language-rust"><span class="boring">#![allow(unused)]
+</span><span class="boring">fn main() {
+</span>File::from(path.to_path_buf()).required(false)
+<span class="boring">}</span></code></pre></pre>
+<p>An explicitly provided configuration path must be required:</p>
+<pre><pre class="playground"><code class="language-rust"><span class="boring">#![allow(unused)]
+</span><span class="boring">fn main() {
+</span>File::from(path.to_path_buf()).required(true)
+<span class="boring">}</span></code></pre></pre>
+<h2 id="environment-variables"><a class="header" href="#environment-variables">Environment Variables</a></h2>
+<p>Environment variables must be loaded after all configuration files:</p>
+<pre><pre class="playground"><code class="language-rust"><span class="boring">#![allow(unused)]
+</span><span class="boring">fn main() {
+</span>.add_source(
+    Environment::with_prefix("APP")
+        .separator("__")
+)
+<span class="boring">}</span></code></pre></pre>
+<p>The <code>APP</code> prefix is common to all services.</p>
+<p>Nested configuration fields must use <code>__</code> as the separator. For example:</p>
+<pre><code class="language-text">APP_DATABASE__HOST=localhost
+APP_DATABASE__PORT=5432
+</code></pre>
+<p>corresponds to:</p>
+<pre><code class="language-yaml">database:
+  host: localhost
+  port: 5432
+</code></pre>
+<p>Because environment variables are added last, they have the highest precedence.</p>
+<p>The resulting precedence is:</p>
+<pre><code class="language-text">Embedded defaults
+        ↓
+Configuration files
+        ↓
+Environment variables
+</code></pre>
+<h2 id="typed-configuration"><a class="header" href="#typed-configuration">Typed Configuration</a></h2>
+<p>The final configuration must be deserialized into a service-specific type:</p>
+<pre><pre class="playground"><code class="language-rust"><span class="boring">#![allow(unused)]
+</span><span class="boring">fn main() {
+</span>#[derive(Debug, Deserialize)]
+pub struct Config {
+    pub server: ServerConfig,
+    pub database: DatabaseConfig,
+}
+<span class="boring">}</span></code></pre></pre>
+<p>The loader must use a generic deserialization interface:</p>
+<pre><pre class="playground"><code class="language-rust"><span class="boring">#![allow(unused)]
+</span><span class="boring">fn main() {
+</span>pub fn load&lt;C&gt;(conf_path: &amp;Option&lt;String&gt;) -&gt; C
+where
+    C: DeserializeOwned + Debug,
+<span class="boring">}</span></code></pre></pre>
+<p>Application and domain code must use the resulting typed configuration rather than reading environment variables directly.</p>
+<h2 id="error-handling"><a class="header" href="#error-handling">Error Handling</a></h2>
+<p>Configuration loading and deserialization must fail fast.</p>
+<p>The loader must log failures using <code>tracing</code> before terminating:</p>
+<pre><pre class="playground"><code class="language-rust"><span class="boring">#![allow(unused)]
+</span><span class="boring">fn main() {
+</span>.inspect_err(|error| {
+    error!("Config Load -&gt; FAILED: error=({})", error)
+})
+.unwrap()
+<span class="boring">}</span></code></pre></pre>
+<p>and:</p>
+<pre><pre class="playground"><code class="language-rust"><span class="boring">#![allow(unused)]
+</span><span class="boring">fn main() {
+</span>.inspect_err(|error| {
+    error!("Config Deserialize -&gt; FAILED: error=({})", error)
+})
+.unwrap();
+<span class="boring">}</span></code></pre></pre>
+<p>A service must not start with an invalid or incomplete configuration.</p>
+<h2 id="logging"><a class="header" href="#logging">Logging</a></h2>
+<p>Successful configuration loading should be logged:</p>
+<pre><pre class="playground"><code class="language-rust"><span class="boring">#![allow(unused)]
+</span><span class="boring">fn main() {
+</span>info!(
+    "Config Load -&gt; SUCCESS: [path, required]=({:?}), config=({:?})",
+    conf_paths, config
+);
+<span class="boring">}</span></code></pre></pre>
+<p>Configuration values must not be logged if their <code>Debug</code> representation can expose secrets such as passwords, tokens, API keys, or private keys.</p>
+<h2 id="implementation"><a class="header" href="#implementation">Implementation</a></h2>
+<p>The configuration loader should follow this implementation pattern:</p>
+<pre><pre class="playground"><code class="language-rust"><span class="boring">#![allow(unused)]
+</span><span class="boring">fn main() {
+</span>use config::{Config, Environment, File, FileFormat};
+use serde::de::DeserializeOwned;
+use std::env;
+use std::fmt::Debug;
+use std::path::PathBuf;
+use tracing::{error, info};
+
+static DEFAULT_YAML: &amp;str = include_str!("../../config.yaml");
+
+pub fn load&lt;C&gt;(conf_path: &amp;Option&lt;String&gt;) -&gt; C
+where
+    C: DeserializeOwned + Debug,
+{
+    let conf_paths = get_config_paths(conf_path);
+
+    let config = conf_paths
+        .iter()
+        .map(|(path, required)| File::from(path.to_path_buf()).required(required.clone()))
+        .fold(
+            Config::builder().add_source(File::from_str(DEFAULT_YAML, FileFormat::Yaml)),
+            |builder, file| builder.add_source(file),
+        )
+        .add_source(Environment::with_prefix("APP").separator("__"))
+        .build()
+        .inspect_err(|error| error!("Config Load -&gt; FAILED: error=({})", error))
+        .unwrap()
+        .try_deserialize()
+        .inspect_err(|error| error!("Config Deserialize -&gt; FAILED: error=({})", error))
+        .unwrap();
+
+    info!(
+        "Config Load -&gt; SUCCESS: [path, required]=({:?}), config=({:?})",
+        conf_paths, config
+    );
+
+    config
+}
+
+fn get_config_paths(conf_path: &amp;Option&lt;String&gt;) -&gt; Vec&lt;(PathBuf, bool)&gt; {
+    let env = env::var("APP_ENV").unwrap_or_else(|_| "dev".into());
+
+    let cwd = env::current_dir()
+        .inspect_err(|error| {
+            error!("Get Current Working Directory -&gt; FAILED. error=({})", error)
+        })
+        .unwrap();
+
+    let app_name = env!("CARGO_PKG_NAME");
+
+    match conf_path {
+        None =&gt; vec![
+            (cwd.join("config.yml"), false),
+            (cwd.join(format!("config-{}.yml", env)), false),
+            (cwd.join(format!("/etc/{}/config.yml", app_name)), false),
+        ],
+        Some(path) =&gt; vec![(cwd.join(path), true)],
+    }
+}
+<span class="boring">}</span></code></pre></pre>
+<p>This implementation pattern must be used consistently across Rust backend services.</p>
 <div style="break-before: page; page-break-before: always;"></div><h1 id="development-guidelines"><a class="header" href="#development-guidelines">Development Guidelines</a></h1>
 <ul>
 <li><a href="development/./git-workflow.html">Git Workflow</a></li>

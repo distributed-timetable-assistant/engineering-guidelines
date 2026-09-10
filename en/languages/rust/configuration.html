@@ -3,7 +3,7 @@
     <head>
         <!-- Book generated using mdBook -->
         <meta charset="UTF-8">
-        <title>Project Structure - DiTA Engineering Guidelines</title>
+        <title>Service Configuration - DiTA Engineering Guidelines</title>
 
 
         <!-- Custom HTML head -->
@@ -175,163 +175,202 @@
 
                 <div id="content" class="content">
                     <main>
-                        <h1 id="rust-project-structure--rust-project-structuremd"><a class="header" href="#rust-project-structure--rust-project-structuremd">Rust project structure — <code>rust-project-structure.md</code></a></h1>
-<p>Below is a recommended repository layout for a Rust service that follows <strong>Clean Architecture</strong> principles and a <strong>functional-programming-friendly</strong> style.
-After the tree I describe the purpose and accepted contents of each entry so maintainers and contributors know what belongs where.</p>
-<pre><code>/                                 # repo root
-├── .github/                      # CI/CD pipelines
-│   └── workflows/
-│       ├── common.yml
-│       ├── feature.yml
-│       ├── dev.yml
-│       ├── master.yml
-│       └── release.yml
-│
-├── docker/                       # Docker build context (multi-stage, test images, compose helpers)
-│   ├── Dockerfile
-│   ├── docker-compose.yml
-│   └── README.md
-│
-├── proto/                        # Shared gRPC contracts (.proto files)
-│   ├── student.proto
-│   ├── instructor.proto
-│   └── common.proto
-│
-├── config/                       # Environment-specific configuration
-│   ├── application.yml
-│   ├── application-dev.yml
-│   ├── application-stage.yml
-│   └── application-prod.yml
-│
-├── scripts/                      # Dev &amp; Ops helper scripts (migrate, seed, local-run)
-│   ├── migrate.sh
-│   ├── seed.sh
-│   ├── local-run.sh
-│   └── README.md
-│
-├── migrations/                   # SQL migrations (for sqlx / refinery)
-│   ├── 0001_init.sql
-│   ├── 0002_add_instructor_table.sql
-│   └── README.md
-│
-├── src/
-│   ├── main.rs                   # Bootstrap entry: load config, init telemetry, start runtime
-│   │
-│   ├── bin/                      # Optional binaries (e.g., worker, migrate, consumer)
-│   │   ├── migrate.rs
-│   │   └── consumer.rs
-│   │
-│   ├── core/                     # ❖ Domain &amp; Use Cases — pure, testable, framework-free
-│   │   ├── domain/               # Entities, ValueObjects, domain errors, domain events
-│   │   │   ├── student.rs
-│   │   │   ├── instructor.rs
-│   │   │   ├── error.rs
-│   │   │   └── mod.rs
-│   │   │
-│   │   ├── ports/                # Abstract traits (repositories, message brokers, cache)
-│   │   │   ├── student_repository.rs
-│   │   │   ├── instructor_repository.rs
-│   │   │   ├── message_broker.rs
-│   │   │   ├── error.rs
-│   │   │   └── mod.rs
-│   │   │
-│   │   └── usecases/             # Application layer orchestration
-│   │       ├── enroll_student/
-│   │       │   ├── command.rs
-│   │       │   ├── query.rs
-│   │       │   └── tests.rs
-│   │       │
-│   │       ├── assign_instructor/
-│   │       │   ├── command.rs
-│   │       │   ├── query.rs
-│   │       │   └── tests.rs
-│   │       │
-│   │       └── mod.rs
-│   │
-│   ├── adapters/                 # ❖ Adapters — implementing external boundaries (infra)
-│   │   ├── http/                 # Axum controllers + route definitions
-│   │   │   ├── routes.rs
-│   │   │   └── handlers/
-│   │   │       ├── student_handler.rs
-│   │   │       ├── instructor_handler.rs
-│   │   │       └── mod.rs
-│   │   │
-│   │   ├── grpc/                 # tonic server + client implementations
-│   │   │   ├── student_grpc.rs
-│   │   │   ├── instructor_grpc.rs
-│   │   │   └── mod.rs
-│   │   │
-│   │   ├── persistence/          # SQLx repositories (Postgres)
-│   │   │   ├── student_repository.rs
-│   │   │   ├── instructor_repository.rs
-│   │   │   └── mod.rs
-│   │   │
-│   │   ├── kafka/                # rdkafka producers &amp; consumers
-│   │   │   ├── producer.rs
-│   │   │   ├── consumer.rs
-│   │   │   └── mod.rs
-│   │   │
-│   │   ├── cache/                # Redis adapters (deadpool-redis)
-│   │   │   ├── redis_cache.rs
-│   │   │   └── mod.rs
-│   │   │
-│   │   ├── auth/                 # JWT / OIDC middleware
-│   │   │   ├── jwt.rs
-│   │   │   └── mod.rs
-│   │   │
-│   │   └── external/             # third-party HTTP/gRPC integrations
-│   │       ├── payment_service.rs
-│   │       ├── logging_service.rs
-│   │       └── mod.rs
-│   │
-│   ├── infrastructure/           # ❖ Composition root: wiring + builders + runtime setup
-│   │   ├── bootstrap.rs          # app startup orchestration
-│   │   ├── config/               # config loader using `config` crate (YAML + env)
-│   │   │   ├── loader.rs
-│   │   │   └── mod.rs
-│   │   ├── db.rs                 # Postgres connection builder
-│   │   ├── cache.rs              # Redis pool builder
-│   │   ├── kafka.rs              # Kafka setup
-│   │   ├── server/               # Axum + Tonic server builders
-│   │   │   ├── http_server.rs
-│   │   │   ├── grpc_server.rs
-│   │   │   └── mod.rs
-│   │   ├── telemetry/            # tracing, otel, prometheus exporters
-│   │   │   ├── tracing.rs
-│   │   │   ├── metrics.rs
-│   │   │   └── mod.rs
-│   │   └── mod.rs
-│   │
-│   ├── shared/                   # Common utils shared across layers (pure helpers)
-│   │   ├── error.rs              # unified AppError type
-│   │   ├── json.rs               # serde/json helpers
-│   │   ├── time.rs               # chrono/date helpers
-│   │   └── result.rs             # functional Result combinators / error adapters
-│   │
-│   ├── tests/                    # Integration &amp; E2E tests
-│   │   ├── integration/
-│   │   │   ├── db_integration_test.rs
-│   │   │   ├── kafka_integration_test.rs
-│   │   │   └── mod.rs
-│   │   └── e2e/
-│   │       ├── user_flow_test.rs
-│   │       └── mod.rs
-│   │
-│   └── lib.rs                    # Optional if the service exposes internal lib functions
-│
-├── Cargo.toml
-└── README.md
+                        <h1 id="rust-service-configuration"><a class="header" href="#rust-service-configuration">Rust Service Configuration</a></h1>
+<p>All DiTA Rust backend services must follow this configuration loading pattern.</p>
+<p>Configuration loading must be implemented under the infrastructure layer:</p>
+<pre><code class="language-text">src/
+└── infrastructure/
+    └── config_loader.rs
 </code></pre>
+<p>The implementation must use the <a href="https://docs.rs/config"><code>config</code></a> crate for configuration sources and <code>serde</code> for typed deserialization.</p>
+<h2 id="default-configuration"><a class="header" href="#default-configuration">Default Configuration</a></h2>
+<p>The default configuration must be embedded into the binary using <code>include_str!</code>:</p>
+<pre><pre class="playground"><code class="language-rust"><span class="boring">#![allow(unused)]
+</span><span class="boring">fn main() {
+</span>static DEFAULT_YAML: &amp;str = include_str!("../../config.yaml");
+<span class="boring">}</span></code></pre></pre>
+<p>It must be registered as the first configuration source:</p>
+<pre><pre class="playground"><code class="language-rust"><span class="boring">#![allow(unused)]
+</span><span class="boring">fn main() {
+</span>Config::builder()
+    .add_source(File::from_str(DEFAULT_YAML, FileFormat::Yaml))
+<span class="boring">}</span></code></pre></pre>
+<p>The default configuration therefore does not depend on the presence of the file at runtime.</p>
+<h2 id="configuration-files"><a class="header" href="#configuration-files">Configuration Files</a></h2>
+<p>Configuration files are loaded after the embedded defaults.</p>
+<p>The environment is determined by <code>APP_ENV</code>:</p>
+<pre><pre class="playground"><code class="language-rust"><span class="boring">#![allow(unused)]
+</span><span class="boring">fn main() {
+</span>let env = env::var("APP_ENV").unwrap_or_else(|_| "dev".into());
+<span class="boring">}</span></code></pre></pre>
+<p>If no explicit configuration path is provided, the loader must consider these paths in order:</p>
+<pre><code class="language-text">./config.yml
+./config-{APP_ENV}.yml
+/etc/{application-name}/config.yml
+</code></pre>
+<p>The application name must be obtained from Cargo:</p>
+<pre><pre class="playground"><code class="language-rust"><span class="boring">#![allow(unused)]
+</span><span class="boring">fn main() {
+</span>let app_name = env!("CARGO_PKG_NAME");
+<span class="boring">}</span></code></pre></pre>
+<p>The default paths are optional:</p>
+<pre><pre class="playground"><code class="language-rust"><span class="boring">#![allow(unused)]
+</span><span class="boring">fn main() {
+</span>File::from(path.to_path_buf()).required(false)
+<span class="boring">}</span></code></pre></pre>
+<p>An explicitly provided configuration path must be required:</p>
+<pre><pre class="playground"><code class="language-rust"><span class="boring">#![allow(unused)]
+</span><span class="boring">fn main() {
+</span>File::from(path.to_path_buf()).required(true)
+<span class="boring">}</span></code></pre></pre>
+<h2 id="environment-variables"><a class="header" href="#environment-variables">Environment Variables</a></h2>
+<p>Environment variables must be loaded after all configuration files:</p>
+<pre><pre class="playground"><code class="language-rust"><span class="boring">#![allow(unused)]
+</span><span class="boring">fn main() {
+</span>.add_source(
+    Environment::with_prefix("APP")
+        .separator("__")
+)
+<span class="boring">}</span></code></pre></pre>
+<p>The <code>APP</code> prefix is common to all services.</p>
+<p>Nested configuration fields must use <code>__</code> as the separator. For example:</p>
+<pre><code class="language-text">APP_DATABASE__HOST=localhost
+APP_DATABASE__PORT=5432
+</code></pre>
+<p>corresponds to:</p>
+<pre><code class="language-yaml">database:
+  host: localhost
+  port: 5432
+</code></pre>
+<p>Because environment variables are added last, they have the highest precedence.</p>
+<p>The resulting precedence is:</p>
+<pre><code class="language-text">Embedded defaults
+        ↓
+Configuration files
+        ↓
+Environment variables
+</code></pre>
+<h2 id="typed-configuration"><a class="header" href="#typed-configuration">Typed Configuration</a></h2>
+<p>The final configuration must be deserialized into a service-specific type:</p>
+<pre><pre class="playground"><code class="language-rust"><span class="boring">#![allow(unused)]
+</span><span class="boring">fn main() {
+</span>#[derive(Debug, Deserialize)]
+pub struct Config {
+    pub server: ServerConfig,
+    pub database: DatabaseConfig,
+}
+<span class="boring">}</span></code></pre></pre>
+<p>The loader must use a generic deserialization interface:</p>
+<pre><pre class="playground"><code class="language-rust"><span class="boring">#![allow(unused)]
+</span><span class="boring">fn main() {
+</span>pub fn load&lt;C&gt;(conf_path: &amp;Option&lt;String&gt;) -&gt; C
+where
+    C: DeserializeOwned + Debug,
+<span class="boring">}</span></code></pre></pre>
+<p>Application and domain code must use the resulting typed configuration rather than reading environment variables directly.</p>
+<h2 id="error-handling"><a class="header" href="#error-handling">Error Handling</a></h2>
+<p>Configuration loading and deserialization must fail fast.</p>
+<p>The loader must log failures using <code>tracing</code> before terminating:</p>
+<pre><pre class="playground"><code class="language-rust"><span class="boring">#![allow(unused)]
+</span><span class="boring">fn main() {
+</span>.inspect_err(|error| {
+    error!("Config Load -&gt; FAILED: error=({})", error)
+})
+.unwrap()
+<span class="boring">}</span></code></pre></pre>
+<p>and:</p>
+<pre><pre class="playground"><code class="language-rust"><span class="boring">#![allow(unused)]
+</span><span class="boring">fn main() {
+</span>.inspect_err(|error| {
+    error!("Config Deserialize -&gt; FAILED: error=({})", error)
+})
+.unwrap();
+<span class="boring">}</span></code></pre></pre>
+<p>A service must not start with an invalid or incomplete configuration.</p>
+<h2 id="logging"><a class="header" href="#logging">Logging</a></h2>
+<p>Successful configuration loading should be logged:</p>
+<pre><pre class="playground"><code class="language-rust"><span class="boring">#![allow(unused)]
+</span><span class="boring">fn main() {
+</span>info!(
+    "Config Load -&gt; SUCCESS: [path, required]=({:?}), config=({:?})",
+    conf_paths, config
+);
+<span class="boring">}</span></code></pre></pre>
+<p>Configuration values must not be logged if their <code>Debug</code> representation can expose secrets such as passwords, tokens, API keys, or private keys.</p>
+<h2 id="implementation"><a class="header" href="#implementation">Implementation</a></h2>
+<p>The configuration loader should follow this implementation pattern:</p>
+<pre><pre class="playground"><code class="language-rust"><span class="boring">#![allow(unused)]
+</span><span class="boring">fn main() {
+</span>use config::{Config, Environment, File, FileFormat};
+use serde::de::DeserializeOwned;
+use std::env;
+use std::fmt::Debug;
+use std::path::PathBuf;
+use tracing::{error, info};
+
+static DEFAULT_YAML: &amp;str = include_str!("../../config.yaml");
+
+pub fn load&lt;C&gt;(conf_path: &amp;Option&lt;String&gt;) -&gt; C
+where
+    C: DeserializeOwned + Debug,
+{
+    let conf_paths = get_config_paths(conf_path);
+
+    let config = conf_paths
+        .iter()
+        .map(|(path, required)| File::from(path.to_path_buf()).required(required.clone()))
+        .fold(
+            Config::builder().add_source(File::from_str(DEFAULT_YAML, FileFormat::Yaml)),
+            |builder, file| builder.add_source(file),
+        )
+        .add_source(Environment::with_prefix("APP").separator("__"))
+        .build()
+        .inspect_err(|error| error!("Config Load -&gt; FAILED: error=({})", error))
+        .unwrap()
+        .try_deserialize()
+        .inspect_err(|error| error!("Config Deserialize -&gt; FAILED: error=({})", error))
+        .unwrap();
+
+    info!(
+        "Config Load -&gt; SUCCESS: [path, required]=({:?}), config=({:?})",
+        conf_paths, config
+    );
+
+    config
+}
+
+fn get_config_paths(conf_path: &amp;Option&lt;String&gt;) -&gt; Vec&lt;(PathBuf, bool)&gt; {
+    let env = env::var("APP_ENV").unwrap_or_else(|_| "dev".into());
+
+    let cwd = env::current_dir()
+        .inspect_err(|error| {
+            error!("Get Current Working Directory -&gt; FAILED. error=({})", error)
+        })
+        .unwrap();
+
+    let app_name = env!("CARGO_PKG_NAME");
+
+    match conf_path {
+        None =&gt; vec![
+            (cwd.join("config.yml"), false),
+            (cwd.join(format!("config-{}.yml", env)), false),
+            (cwd.join(format!("/etc/{}/config.yml", app_name)), false),
+        ],
+        Some(path) =&gt; vec![(cwd.join(path), true)],
+    }
+}
+<span class="boring">}</span></code></pre></pre>
+<p>This implementation pattern must be used consistently across Rust backend services.</p>
 
                     </main>
 
                     <nav class="nav-wrapper" aria-label="Page navigation">
                         <!-- Mobile navigation buttons -->
-                            <a rel="prev" href="../../languages/rust/index.html" class="mobile-nav-chapters previous" title="Previous chapter" aria-label="Previous chapter" aria-keyshortcuts="Left">
+                            <a rel="prev" href="../../languages/rust/project-structure.html" class="mobile-nav-chapters previous" title="Previous chapter" aria-label="Previous chapter" aria-keyshortcuts="Left">
                                 <i class="fa fa-angle-left"></i>
                             </a>
 
-                            <a rel="next prefetch" href="../../languages/rust/configuration.html" class="mobile-nav-chapters next" title="Next chapter" aria-label="Next chapter" aria-keyshortcuts="Right">
+                            <a rel="next prefetch" href="../../development/index.html" class="mobile-nav-chapters next" title="Next chapter" aria-label="Next chapter" aria-keyshortcuts="Right">
                                 <i class="fa fa-angle-right"></i>
                             </a>
 
@@ -341,11 +380,11 @@ After the tree I describe the purpose and accepted contents of each entry so mai
             </div>
 
             <nav class="nav-wide-wrapper" aria-label="Page navigation">
-                    <a rel="prev" href="../../languages/rust/index.html" class="nav-chapters previous" title="Previous chapter" aria-label="Previous chapter" aria-keyshortcuts="Left">
+                    <a rel="prev" href="../../languages/rust/project-structure.html" class="nav-chapters previous" title="Previous chapter" aria-label="Previous chapter" aria-keyshortcuts="Left">
                         <i class="fa fa-angle-left"></i>
                     </a>
 
-                    <a rel="next prefetch" href="../../languages/rust/configuration.html" class="nav-chapters next" title="Next chapter" aria-label="Next chapter" aria-keyshortcuts="Right">
+                    <a rel="next prefetch" href="../../development/index.html" class="nav-chapters next" title="Next chapter" aria-label="Next chapter" aria-keyshortcuts="Right">
                         <i class="fa fa-angle-right"></i>
                     </a>
             </nav>

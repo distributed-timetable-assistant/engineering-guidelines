@@ -203,7 +203,8 @@
 </ul>
 <h2 id="موضوعات"><a class="header" href="#موضوعات">موضوعات</a></h2>
 <ul>
-<li><a href="languages/rust/./structure.html">ساختار پروژه</a> (اضافه خواهد شد)</li>
+<li><a href="languages/rust/./project-structure.html">ساختار پروژه</a></li>
+<li><a href="languages/rust/./configuration.html">پیکربندی سرویس‌ها</a></li>
 <li><a href="languages/rust/./error-handling.html">مدیریت خطا</a> (اضافه خواهد شد)</li>
 <li><a href="languages/rust/./testing.html">تست</a> (اضافه خواهد شد)</li>
 <li><a href="languages/rust/./async.html">Async/Await</a> (اضافه خواهد شد)</li>
@@ -355,6 +356,192 @@
 ├── Cargo.toml
 └── README.md
 </code></pre>
+<div style="break-before: page; page-break-before: always;"></div><h1 id="پیکربندی-سرویسهای-rust"><a class="header" href="#پیکربندی-سرویسهای-rust">پیکربندی سرویس‌های Rust</a></h1>
+<p>تمام سرویس‌های بک‌اند Rust در DiTA باید از این الگوی بارگذاری پیکربندی پیروی کنند.</p>
+<p>پیاده‌سازی بارگذاری پیکربندی باید در لایه‌ی Infrastructure قرار داشته باشد:</p>
+<pre><code class="language-text">src/
+└── infrastructure/
+    └── config_loader.rs
+</code></pre>
+<p>پیاده‌سازی باید برای منابع پیکربندی از crate‌ی <a href="https://docs.rs/config"><code>config</code></a> و برای deserialization تایپ‌شده از <code>serde</code> استفاده کند.</p>
+<h2 id="پیکربندی-پیشفرض"><a class="header" href="#پیکربندی-پیشفرض">پیکربندی پیش‌فرض</a></h2>
+<p>پیکربندی پیش‌فرض باید با استفاده از <code>include_str!</code> درون باینری قرار گیرد:</p>
+<pre><pre class="playground"><code class="language-rust"><span class="boring">#![allow(unused)]
+</span><span class="boring">fn main() {
+</span>static DEFAULT_YAML: &amp;str = include_str!("../../config.yaml");
+<span class="boring">}</span></code></pre></pre>
+<p>این پیکربندی باید به‌عنوان اولین منبع پیکربندی ثبت شود:</p>
+<pre><pre class="playground"><code class="language-rust"><span class="boring">#![allow(unused)]
+</span><span class="boring">fn main() {
+</span>Config::builder()
+    .add_source(File::from_str(DEFAULT_YAML, FileFormat::Yaml))
+<span class="boring">}</span></code></pre></pre>
+<p>بنابراین وجود فایل پیکربندی پیش‌فرض در زمان اجرا الزامی نیست.</p>
+<h2 id="فایلهای-پیکربندی"><a class="header" href="#فایلهای-پیکربندی">فایل‌های پیکربندی</a></h2>
+<p>فایل‌های پیکربندی پس از پیکربندی پیش‌فرض داخلی بارگذاری می‌شوند.</p>
+<p>محیط اجرا از طریق <code>APP_ENV</code> تعیین می‌شود:</p>
+<pre><pre class="playground"><code class="language-rust"><span class="boring">#![allow(unused)]
+</span><span class="boring">fn main() {
+</span>let env = env::var("APP_ENV").unwrap_or_else(|_| "dev".into());
+<span class="boring">}</span></code></pre></pre>
+<p>اگر مسیر پیکربندی به‌صورت صریح مشخص نشده باشد، loader باید مسیرهای زیر را به‌ترتیب بررسی کند:</p>
+<pre><code class="language-text">./config.yml
+./config-{APP_ENV}.yml
+/etc/{application-name}/config.yml
+</code></pre>
+<p>نام application باید از Cargo دریافت شود:</p>
+<pre><pre class="playground"><code class="language-rust"><span class="boring">#![allow(unused)]
+</span><span class="boring">fn main() {
+</span>let app_name = env!("CARGO_PKG_NAME");
+<span class="boring">}</span></code></pre></pre>
+<p>مسیرهای پیش‌فرض اختیاری هستند:</p>
+<pre><pre class="playground"><code class="language-rust"><span class="boring">#![allow(unused)]
+</span><span class="boring">fn main() {
+</span>File::from(path.to_path_buf()).required(false)
+<span class="boring">}</span></code></pre></pre>
+<p>مسیر پیکربندی که به‌صورت صریح مشخص شده است باید الزامی باشد:</p>
+<pre><pre class="playground"><code class="language-rust"><span class="boring">#![allow(unused)]
+</span><span class="boring">fn main() {
+</span>File::from(path.to_path_buf()).required(true)
+<span class="boring">}</span></code></pre></pre>
+<h2 id="متغیرهای-محیطی"><a class="header" href="#متغیرهای-محیطی">متغیرهای محیطی</a></h2>
+<p>متغیرهای محیطی باید پس از تمام فایل‌های پیکربندی بارگذاری شوند:</p>
+<pre><pre class="playground"><code class="language-rust"><span class="boring">#![allow(unused)]
+</span><span class="boring">fn main() {
+</span>.add_source(
+    Environment::with_prefix("APP")
+        .separator("__")
+)
+<span class="boring">}</span></code></pre></pre>
+<p>پیشوند <code>APP</code> برای تمام سرویس‌ها یکسان است.</p>
+<p>فیلدهای تو‌در‌تو در پیکربندی باید با استفاده از <code>__</code> از یکدیگر جدا شوند. برای مثال:</p>
+<pre><code class="language-text">APP_DATABASE__HOST=localhost
+APP_DATABASE__PORT=5432
+</code></pre>
+<p>معادل پیکربندی زیر است:</p>
+<pre><code class="language-yaml">database:
+  host: localhost
+  port: 5432
+</code></pre>
+<p>از آنجا که متغیرهای محیطی در آخر اضافه می‌شوند، بالاترین اولویت را دارند.</p>
+<p>اولویت منابع پیکربندی به این ترتیب است:</p>
+<pre><code class="language-text">پیکربندی پیش‌فرض داخلی
+        ↓
+فایل‌های پیکربندی
+        ↓
+متغیرهای محیطی
+</code></pre>
+<h2 id="پیکربندی-تایپشده"><a class="header" href="#پیکربندی-تایپشده">پیکربندی تایپ‌شده</a></h2>
+<p>پیکربندی نهایی باید در یک type اختصاصی سرویس deserialize شود:</p>
+<pre><pre class="playground"><code class="language-rust"><span class="boring">#![allow(unused)]
+</span><span class="boring">fn main() {
+</span>#[derive(Debug, Deserialize)]
+pub struct Config {
+    pub server: ServerConfig,
+    pub database: DatabaseConfig,
+}
+<span class="boring">}</span></code></pre></pre>
+<p>loader باید از یک رابط generic برای deserialization استفاده کند:</p>
+<pre><pre class="playground"><code class="language-rust"><span class="boring">#![allow(unused)]
+</span><span class="boring">fn main() {
+</span>pub fn load&lt;C&gt;(conf_path: &amp;Option&lt;String&gt;) -&gt; C
+where
+    C: DeserializeOwned + Debug,
+<span class="boring">}</span></code></pre></pre>
+<p>کدهای Application و Domain باید از پیکربندی تایپ‌شده‌ی حاصل استفاده کنند و مستقیماً متغیرهای محیطی را نخوانند.</p>
+<h2 id="مدیریت-خطا"><a class="header" href="#مدیریت-خطا">مدیریت خطا</a></h2>
+<p>بارگذاری و deserialization پیکربندی باید به‌صورت fail-fast انجام شود.</p>
+<p>loader باید قبل از خاتمه‌ی سرویس، خطاها را با استفاده از <code>tracing</code> ثبت کند:</p>
+<pre><pre class="playground"><code class="language-rust"><span class="boring">#![allow(unused)]
+</span><span class="boring">fn main() {
+</span>.inspect_err(|error| {
+    error!("Config Load -&gt; FAILED: error=({})", error)
+})
+.unwrap()
+<span class="boring">}</span></code></pre></pre>
+<p>و:</p>
+<pre><pre class="playground"><code class="language-rust"><span class="boring">#![allow(unused)]
+</span><span class="boring">fn main() {
+</span>.inspect_err(|error| {
+    error!("Config Deserialize -&gt; FAILED: error=({})", error)
+})
+.unwrap();
+<span class="boring">}</span></code></pre></pre>
+<p>سرویس نباید با پیکربندی نامعتبر یا ناقص اجرا شود.</p>
+<h2 id="logging"><a class="header" href="#logging">Logging</a></h2>
+<p>بارگذاری موفق پیکربندی باید ثبت شود:</p>
+<pre><pre class="playground"><code class="language-rust"><span class="boring">#![allow(unused)]
+</span><span class="boring">fn main() {
+</span>info!(
+    "Config Load -&gt; SUCCESS: [path, required]=({:?}), config=({:?})",
+    conf_paths, config
+);
+<span class="boring">}</span></code></pre></pre>
+<p>اگر نمایش <code>Debug</code> پیکربندی می‌تواند اطلاعات محرمانه‌ای مانند password، token، API key یا private key را آشکار کند، مقادیر پیکربندی نباید log شوند.</p>
+<h2 id="پیادهسازی"><a class="header" href="#پیادهسازی">پیاده‌سازی</a></h2>
+<p>loader پیکربندی باید از الگوی پیاده‌سازی زیر پیروی کند:</p>
+<pre><pre class="playground"><code class="language-rust"><span class="boring">#![allow(unused)]
+</span><span class="boring">fn main() {
+</span>use config::{Config, Environment, File, FileFormat};
+use serde::de::DeserializeOwned;
+use std::env;
+use std::fmt::Debug;
+use std::path::PathBuf;
+use tracing::{error, info};
+
+static DEFAULT_YAML: &amp;str = include_str!("../../config.yaml");
+
+pub fn load&lt;C&gt;(conf_path: &amp;Option&lt;String&gt;) -&gt; C
+where
+    C: DeserializeOwned + Debug,
+{
+    let conf_paths = get_config_paths(conf_path);
+
+    let config = conf_paths
+        .iter()
+        .map(|(path, required)| File::from(path.to_path_buf()).required(required.clone()))
+        .fold(
+            Config::builder().add_source(File::from_str(DEFAULT_YAML, FileFormat::Yaml)),
+            |builder, file| builder.add_source(file),
+        )
+        .add_source(Environment::with_prefix("APP").separator("__"))
+        .build()
+        .inspect_err(|error| error!("Config Load -&gt; FAILED: error=({})", error))
+        .unwrap()
+        .try_deserialize()
+        .inspect_err(|error| error!("Config Deserialize -&gt; FAILED: error=({})", error))
+        .unwrap();
+
+    info!(
+        "Config Load -&gt; SUCCESS: [path, required]=({:?}), config=({:?})",
+        conf_paths, config
+    );
+
+    config
+}
+
+fn get_config_paths(conf_path: &amp;Option&lt;String&gt;) -&gt; Vec&lt;(PathBuf, bool)&gt; {
+    let env = env::var("APP_ENV").unwrap_or_else(|_| "dev".into());
+
+    let cwd = env::current_dir()
+        .inspect_err(|error| {
+            error!("Get Current Working Directory -&gt; FAILED. error=({})", error)
+        })
+        .unwrap();
+
+    let app_name = env!("CARGO_PKG_NAME");
+
+    match conf_path {
+        None =&gt; vec![
+            (cwd.join("config.yml"), false),
+            (cwd.join(format!("config-{}.yml", env)), false),
+            (cwd.join(format!("/etc/{}/config.yml", app_name)), false),
+        ],
+        Some(path) =&gt; vec![(cwd.join(path), true)],
+    }
+}
+<span class="boring">}</span></code></pre></pre>
+<p>این الگوی پیاده‌سازی باید در تمام سرویس‌های بک‌اند Rust به‌صورت یکسان استفاده شود.</p>
 <div style="break-before: page; page-break-before: always;"></div><h1 id="راهنمای-توسعه"><a class="header" href="#راهنمای-توسعه">راهنمای توسعه</a></h1>
 <ul>
 <li><a href="development/./git-workflow.html">جریان کاری گیت</a></li>
