@@ -4,6 +4,7 @@
   - [Rust](languages/rust/README.md)
     - [ساختار پروژه](languages/rust/project-structure.md)
     - [پیکربندی سرویس‌ها](languages/rust/configuration.md)
+    - [راه‌اندازی سرویس‌ها](languages/rust/bootstrap.md)
 
 - [توسعه](development/README.md)
   - [سوابق تصمیم‌گیری](development/decision-records.md)

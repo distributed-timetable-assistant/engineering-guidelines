@@ -17,6 +17,7 @@ This section details the standards and best practices for Rust development at Di
 
 *   [Project Structure](./project-structure.md)
 *   [Service Configuration](./configuration.md)
+*   [Service Bootstrap](./bootstrap.md)
 *   [Error Handling](./error-handling.md) (To be added)
 *   [Testing](./testing.md) (To be added)
 *   [Async/Await](./async.md) (To be added)

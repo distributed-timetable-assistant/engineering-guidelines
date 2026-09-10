@@ -17,6 +17,7 @@
 
 *   [ساختار پروژه](./project-structure.md)
 *   [پیکربندی سرویس‌ها](./configuration.md)
+*   [راه‌اندازی سرویس‌ها](./bootstrap.md)
 *   [مدیریت خطا](./error-handling.md) (اضافه خواهد شد)
 *   [تست](./testing.md) (اضافه خواهد شد)
 *   [Async/Await](./async.md) (اضافه خواهد شد)
