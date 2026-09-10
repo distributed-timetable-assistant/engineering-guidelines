@@ -1,9 +1,9 @@
 <!DOCTYPE HTML>
-<html lang="fa" class="light sidebar-visible" dir="rtl">
+<html lang="en" class="light sidebar-visible" dir="ltr">
     <head>
         <!-- Book generated using mdBook -->
         <meta charset="UTF-8">
-        <title>پیکربندی سرویس‌ها - راهنمای مهندسی DiTA</title>
+        <title>Service Bootstrap - DiTA Engineering Guidelines</title>
 
 
         <!-- Custom HTML head -->
@@ -138,7 +138,7 @@
                         </button>
                     </div>
 
-                    <h1 class="menu-title">راهنمای مهندسی DiTA</h1>
+                    <h1 class="menu-title">DiTA Engineering Guidelines</h1>
 
                     <div class="right-buttons">
                         <a href="../../print.html" title="Print this book" aria-label="Print this book">
@@ -175,202 +175,213 @@
 
                 <div id="content" class="content">
                     <main>
-                        <h1 id="پیکربندی-سرویسهای-rust"><a class="header" href="#پیکربندی-سرویسهای-rust">پیکربندی سرویس‌های Rust</a></h1>
-<p>تمام سرویس‌های بک‌اند Rust در DiTA باید از این الگوی بارگذاری پیکربندی پیروی کنند.</p>
-<p>پیاده‌سازی بارگذاری پیکربندی باید در لایه‌ی Infrastructure قرار داشته باشد:</p>
+                        <h1 id="rust-service-bootstrap"><a class="header" href="#rust-service-bootstrap">Rust Service Bootstrap</a></h1>
+<p>All DiTA Rust backend services must follow a standardized bootstrap pattern.</p>
+<p>The application entry point must remain minimal. Service initialization, command-line parsing, configuration loading, application state construction, router initialization, and server startup must be orchestrated by the infrastructure bootstrap layer.</p>
+<h2 id="architecture"><a class="header" href="#architecture">Architecture</a></h2>
+<p>The bootstrap flow must follow this structure:</p>
+<pre><code class="language-text">src/
+├── main.rs
+├── infrastructure/
+│   ├── bootstrap.rs
+│   └── cli.rs
+└── shared/
+    ├── config.rs
+    └── state.rs
+</code></pre>
+<p>The responsibilities of these modules are:</p>
+<div class="table-wrapper"><table><thead><tr><th>Module</th><th>Responsibility</th></tr></thead><tbody>
+<tr><td><code>main.rs</code></td><td>Application entry point</td></tr>
+<tr><td><code>infrastructure/bootstrap.rs</code></td><td>Application bootstrap orchestration</td></tr>
+<tr><td><code>infrastructure/cli.rs</code></td><td>Command-line interface definition and parsing</td></tr>
+<tr><td><code>shared/config.rs</code></td><td>Application configuration model</td></tr>
+<tr><td><code>shared/state.rs</code></td><td>Shared application state</td></tr>
+</tbody></table>
+</div>
+<h2 id="application-entry-point"><a class="header" href="#application-entry-point">Application Entry Point</a></h2>
+<p><code>main.rs</code> must contain only the minimal application entry point and delegate startup to the bootstrap layer.</p>
+<pre><pre class="playground"><code class="language-rust">async fn main() -&gt; AppResult&lt;()&gt; {
+    bootstrap::start().await
+}</code></pre></pre>
+<p>Business logic, configuration parsing, router construction, or infrastructure initialization must not be implemented directly in <code>main.rs</code>.</p>
+<h2 id="command-line-interface"><a class="header" href="#command-line-interface">Command-Line Interface</a></h2>
+<p>Application bootstrap configuration must be initiated through a command-line interface implemented with <a href="https://docs.rs/clap"><code>clap</code></a>.</p>
+<p>The CLI definition must reside under the infrastructure layer:</p>
 <pre><code class="language-text">src/
 └── infrastructure/
-    └── config_loader.rs
+    └── cli.rs
 </code></pre>
-<p>پیاده‌سازی باید برای منابع پیکربندی از crate‌ی <a href="https://docs.rs/config"><code>config</code></a> و برای deserialization تایپ‌شده از <code>serde</code> استفاده کند.</p>
-<h2 id="پیکربندی-پیشفرض"><a class="header" href="#پیکربندی-پیشفرض">پیکربندی پیش‌فرض</a></h2>
-<p>پیکربندی پیش‌فرض باید با استفاده از <code>include_str!</code> درون باینری قرار گیرد:</p>
+<p>The CLI must use <code>clap::Parser</code>:</p>
 <pre><pre class="playground"><code class="language-rust"><span class="boring">#![allow(unused)]
 </span><span class="boring">fn main() {
-</span>static DEFAULT_YAML: &amp;str = include_str!("../../config.yaml");
-<span class="boring">}</span></code></pre></pre>
-<p>این پیکربندی باید به‌عنوان اولین منبع پیکربندی ثبت شود:</p>
-<pre><pre class="playground"><code class="language-rust"><span class="boring">#![allow(unused)]
-</span><span class="boring">fn main() {
-</span>Config::builder()
-    .add_source(File::from_str(DEFAULT_YAML, FileFormat::Yaml))
-<span class="boring">}</span></code></pre></pre>
-<p>بنابراین وجود فایل پیکربندی پیش‌فرض در زمان اجرا الزامی نیست.</p>
-<h2 id="فایلهای-پیکربندی"><a class="header" href="#فایلهای-پیکربندی">فایل‌های پیکربندی</a></h2>
-<p>فایل‌های پیکربندی پس از پیکربندی پیش‌فرض داخلی بارگذاری می‌شوند.</p>
-<p>محیط اجرا از طریق <code>APP_ENV</code> تعیین می‌شود:</p>
-<pre><pre class="playground"><code class="language-rust"><span class="boring">#![allow(unused)]
-</span><span class="boring">fn main() {
-</span>let env = env::var("APP_ENV").unwrap_or_else(|_| "dev".into());
-<span class="boring">}</span></code></pre></pre>
-<p>اگر مسیر پیکربندی به‌صورت صریح مشخص نشده باشد، loader باید مسیرهای زیر را به‌ترتیب بررسی کند:</p>
-<pre><code class="language-text">./config.yml
-./config-{APP_ENV}.yml
-/etc/{application-name}/config.yml
-</code></pre>
-<p>نام application باید از Cargo دریافت شود:</p>
-<pre><pre class="playground"><code class="language-rust"><span class="boring">#![allow(unused)]
-</span><span class="boring">fn main() {
-</span>let app_name = env!("CARGO_PKG_NAME");
-<span class="boring">}</span></code></pre></pre>
-<p>مسیرهای پیش‌فرض اختیاری هستند:</p>
-<pre><pre class="playground"><code class="language-rust"><span class="boring">#![allow(unused)]
-</span><span class="boring">fn main() {
-</span>File::from(path.to_path_buf()).required(false)
-<span class="boring">}</span></code></pre></pre>
-<p>مسیر پیکربندی که به‌صورت صریح مشخص شده است باید الزامی باشد:</p>
-<pre><pre class="playground"><code class="language-rust"><span class="boring">#![allow(unused)]
-</span><span class="boring">fn main() {
-</span>File::from(path.to_path_buf()).required(true)
-<span class="boring">}</span></code></pre></pre>
-<h2 id="متغیرهای-محیطی"><a class="header" href="#متغیرهای-محیطی">متغیرهای محیطی</a></h2>
-<p>متغیرهای محیطی باید پس از تمام فایل‌های پیکربندی بارگذاری شوند:</p>
-<pre><pre class="playground"><code class="language-rust"><span class="boring">#![allow(unused)]
-</span><span class="boring">fn main() {
-</span>.add_source(
-    Environment::with_prefix("APP")
-        .separator("__")
-)
-<span class="boring">}</span></code></pre></pre>
-<p>پیشوند <code>APP</code> برای تمام سرویس‌ها یکسان است.</p>
-<p>فیلدهای تو‌در‌تو در پیکربندی باید با استفاده از <code>__</code> از یکدیگر جدا شوند. برای مثال:</p>
-<pre><code class="language-text">APP_DATABASE__HOST=localhost
-APP_DATABASE__PORT=5432
-</code></pre>
-<p>معادل پیکربندی زیر است:</p>
-<pre><code class="language-yaml">database:
-  host: localhost
-  port: 5432
-</code></pre>
-<p>از آنجا که متغیرهای محیطی در آخر اضافه می‌شوند، بالاترین اولویت را دارند.</p>
-<p>اولویت منابع پیکربندی به این ترتیب است:</p>
-<pre><code class="language-text">پیکربندی پیش‌فرض داخلی
-        ↓
-فایل‌های پیکربندی
-        ↓
-متغیرهای محیطی
-</code></pre>
-<h2 id="پیکربندی-تایپشده"><a class="header" href="#پیکربندی-تایپشده">پیکربندی تایپ‌شده</a></h2>
-<p>پیکربندی نهایی باید در یک type اختصاصی سرویس deserialize شود:</p>
-<pre><pre class="playground"><code class="language-rust"><span class="boring">#![allow(unused)]
-</span><span class="boring">fn main() {
-</span>#[derive(Debug, Deserialize)]
-pub struct Config {
-    pub server: ServerConfig,
-    pub database: DatabaseConfig,
+</span>use clap::Parser;
+
+#[derive(Parser)]
+#[command(name = "&lt;app name&gt;")]
+#[command(about = "&lt;App Description&gt;", long_about = None)]
+pub struct Cli {
+    #[arg(short, long, global = true)]
+    pub config: Option&lt;String&gt;,
+
+    // ...
 }
 <span class="boring">}</span></code></pre></pre>
-<p>loader باید از یک رابط generic برای deserialization استفاده کند:</p>
+<p><code>Cli::parse()</code> must be the entry point for command-line argument parsing during bootstrap.</p>
+<p>Services may expose additional command-line arguments as required by their responsibilities, but CLI options must remain limited to application startup and operational concerns.</p>
+<h2 id="configuration-loading"><a class="header" href="#configuration-loading">Configuration Loading</a></h2>
+<p>The parsed CLI arguments must be used to determine the configuration source.</p>
+<p>Configuration loading must remain separate from the CLI definition and must use the project's standardized configuration-loading mechanism.</p>
+<p>The configuration model must be defined independently:</p>
 <pre><pre class="playground"><code class="language-rust"><span class="boring">#![allow(unused)]
 </span><span class="boring">fn main() {
-</span>pub fn load&lt;C&gt;(conf_path: &amp;Option&lt;String&gt;) -&gt; C
-where
-    C: DeserializeOwned + Debug,
-<span class="boring">}</span></code></pre></pre>
-<p>کدهای Application و Domain باید از پیکربندی تایپ‌شده‌ی حاصل استفاده کنند و مستقیماً متغیرهای محیطی را نخوانند.</p>
-<h2 id="مدیریت-خطا"><a class="header" href="#مدیریت-خطا">مدیریت خطا</a></h2>
-<p>بارگذاری و deserialization پیکربندی باید به‌صورت fail-fast انجام شود.</p>
-<p>loader باید قبل از خاتمه‌ی سرویس، خطاها را با استفاده از <code>tracing</code> ثبت کند:</p>
-<pre><pre class="playground"><code class="language-rust"><span class="boring">#![allow(unused)]
-</span><span class="boring">fn main() {
-</span>.inspect_err(|error| {
-    error!("Config Load -&gt; FAILED: error=({})", error)
-})
-.unwrap()
-<span class="boring">}</span></code></pre></pre>
-<p>و:</p>
-<pre><pre class="playground"><code class="language-rust"><span class="boring">#![allow(unused)]
-</span><span class="boring">fn main() {
-</span>.inspect_err(|error| {
-    error!("Config Deserialize -&gt; FAILED: error=({})", error)
-})
-.unwrap();
-<span class="boring">}</span></code></pre></pre>
-<p>سرویس نباید با پیکربندی نامعتبر یا ناقص اجرا شود.</p>
-<h2 id="logging"><a class="header" href="#logging">Logging</a></h2>
-<p>بارگذاری موفق پیکربندی باید ثبت شود:</p>
-<pre><pre class="playground"><code class="language-rust"><span class="boring">#![allow(unused)]
-</span><span class="boring">fn main() {
-</span>info!(
-    "Config Load -&gt; SUCCESS: [path, required]=({:?}), config=({:?})",
-    conf_paths, config
-);
-<span class="boring">}</span></code></pre></pre>
-<p>اگر نمایش <code>Debug</code> پیکربندی می‌تواند اطلاعات محرمانه‌ای مانند password، token، API key یا private key را آشکار کند، مقادیر پیکربندی نباید log شوند.</p>
-<h2 id="پیادهسازی"><a class="header" href="#پیادهسازی">پیاده‌سازی</a></h2>
-<p>loader پیکربندی باید از الگوی پیاده‌سازی زیر پیروی کند:</p>
-<pre><pre class="playground"><code class="language-rust"><span class="boring">#![allow(unused)]
-</span><span class="boring">fn main() {
-</span>use config::{Config, Environment, File, FileFormat};
-use serde::de::DeserializeOwned;
-use std::env;
-use std::fmt::Debug;
-use std::path::PathBuf;
-use tracing::{error, info};
+</span>use serde::Deserialize;
+use std::net::SocketAddr;
 
-static DEFAULT_YAML: &amp;str = include_str!("../../config.yaml");
+#[derive(Clone, Debug, Deserialize)]
+pub struct Config {
+    pub listen_addr: SocketAddr,
 
-pub fn load&lt;C&gt;(conf_path: &amp;Option&lt;String&gt;) -&gt; C
-where
-    C: DeserializeOwned + Debug,
-{
-    let conf_paths = get_config_paths(conf_path);
+    // ...
+}
+<span class="boring">}</span></code></pre></pre>
+<p>The bootstrap layer is responsible for connecting the CLI configuration path to the configuration loader:</p>
+<pre><pre class="playground"><code class="language-rust"><span class="boring">#![allow(unused)]
+</span><span class="boring">fn main() {
+</span>let cli = Cli::parse();
+let conf_path = cli.config;
+let config: Config = config_loader::load(&amp;conf_path);
+<span class="boring">}</span></code></pre></pre>
+<p>The configuration model must not depend on <code>clap</code>, and the CLI model must not contain application runtime state.</p>
+<h2 id="bootstrap-orchestration"><a class="header" href="#bootstrap-orchestration">Bootstrap Orchestration</a></h2>
+<p>All service startup operations must be orchestrated by <code>infrastructure/bootstrap.rs</code>.</p>
+<p>The bootstrap function must perform initialization in a defined sequence:</p>
+<ol>
+<li>Parse command-line arguments.</li>
+<li>Load application configuration.</li>
+<li>Initialize application state.</li>
+<li>Initialize application components and infrastructure dependencies.</li>
+<li>Construct the router and middleware.</li>
+<li>Bind the server listener.</li>
+<li>Start the HTTP server.</li>
+</ol>
+<p>A typical implementation is:</p>
+<pre><pre class="playground"><code class="language-rust"><span class="boring">#![allow(unused)]
+</span><span class="boring">fn main() {
+</span>pub async fn start() -&gt; AppResult&lt;()&gt; {
+    telemetry::init();
+    info!("Starting &lt;service name&gt;...");
 
-    let config = conf_paths
-        .iter()
-        .map(|(path, required)| File::from(path.to_path_buf()).required(required.clone()))
-        .fold(
-            Config::builder().add_source(File::from_str(DEFAULT_YAML, FileFormat::Yaml)),
-            |builder, file| builder.add_source(file),
-        )
-        .add_source(Environment::with_prefix("APP").separator("__"))
-        .build()
-        .inspect_err(|error| error!("Config Load -&gt; FAILED: error=({})", error))
-        .unwrap()
-        .try_deserialize()
-        .inspect_err(|error| error!("Config Deserialize -&gt; FAILED: error=({})", error))
-        .unwrap();
+    let cli = Cli::parse();
+    let conf_path = cli.config;
+    let config: Config = config_loader::load(&amp;conf_path);
+
+    let state = AppState {
+        config: config.clone(),
+        // ...
+    };
+
+    let app = router()
+        .with_state(Arc::new(state))
+        .layer(TraceLayer::new_for_http());
+
+    let listener = tokio::net::TcpListener::bind(&amp;config.listen_addr).await?;
 
     info!(
-        "Config Load -&gt; SUCCESS: [path, required]=({:?}), config=({:?})",
-        conf_paths, config
+        "Listening -&gt; SUCCESS: listen_addr=({})",
+        config.listen_addr
     );
 
-    config
-}
+    axum::serve(listener, app).await?;
 
-fn get_config_paths(conf_path: &amp;Option&lt;String&gt;) -&gt; Vec&lt;(PathBuf, bool)&gt; {
-    let env = env::var("APP_ENV").unwrap_or_else(|_| "dev".into());
+    info!(
+        "Axum Serve -&gt; SUCCESS: listen_addr=({})",
+        config.listen_addr
+    );
 
-    let cwd = env::current_dir()
-        .inspect_err(|error| {
-            error!("Get Current Working Directory -&gt; FAILED. error=({})", error)
-        })
-        .unwrap();
-
-    let app_name = env!("CARGO_PKG_NAME");
-
-    match conf_path {
-        None =&gt; vec![
-            (cwd.join("config.yml"), false),
-            (cwd.join(format!("config-{}.yml", env)), false),
-            (cwd.join(format!("/etc/{}/config.yml", app_name)), false),
-        ],
-        Some(path) =&gt; vec![(cwd.join(path), true)],
-    }
+    Ok(())
 }
 <span class="boring">}</span></code></pre></pre>
-<p>این الگوی پیاده‌سازی باید در تمام سرویس‌های بک‌اند Rust به‌صورت یکسان استفاده شود.</p>
+<p>The bootstrap function is responsible for orchestration only. It must not become a container for business logic or domain-specific application behavior.</p>
+<h2 id="shared-application-state"><a class="header" href="#shared-application-state">Shared Application State</a></h2>
+<p>Application-wide runtime state must be represented by <code>AppState</code> and defined separately from the bootstrap implementation:</p>
+<pre><code class="language-text">src/
+└── shared/
+    └── state.rs
+</code></pre>
+<p>Example:</p>
+<pre><pre class="playground"><code class="language-rust"><span class="boring">#![allow(unused)]
+</span><span class="boring">fn main() {
+</span>pub struct AppState {
+    pub config: Config,
+
+    // ...
+}
+<span class="boring">}</span></code></pre></pre>
+<p>The bootstrap layer constructs the initial <code>AppState</code> and provides it to the application components that require shared state.</p>
+<p><code>AppState</code> must contain runtime dependencies and shared application data, not command-line parsing concerns.</p>
+<h2 id="dependency-boundaries"><a class="header" href="#dependency-boundaries">Dependency Boundaries</a></h2>
+<p>The following boundaries must be maintained:</p>
+<pre><code class="language-text">main.rs
+   │
+   ▼
+bootstrap.rs
+   │
+   ├──► cli.rs
+   ├──► config_loader
+   ├──► Config
+   ├──► AppState
+   └──► application infrastructure
+</code></pre>
+<p>The CLI, configuration model, and application state have distinct responsibilities:</p>
+<ul>
+<li><code>cli.rs</code> defines how startup parameters are provided.</li>
+<li><code>config.rs</code> defines the application's runtime configuration.</li>
+<li><code>state.rs</code> defines shared runtime state.</li>
+<li><code>bootstrap.rs</code> connects these components and starts the service.</li>
+</ul>
+<h2 id="http-server-startup"><a class="header" href="#http-server-startup">HTTP Server Startup</a></h2>
+<p>HTTP server construction and startup must be performed by the bootstrap layer.</p>
+<p>For Axum-based services:</p>
+<pre><pre class="playground"><code class="language-rust"><span class="boring">#![allow(unused)]
+</span><span class="boring">fn main() {
+</span>let listener = tokio::net::TcpListener::bind(&amp;config.listen_addr).await?;
+axum::serve(listener, app).await?;
+<span class="boring">}</span></code></pre></pre>
+<p>The listener address must originate from application configuration rather than being hard-coded in the bootstrap implementation.</p>
+<h2 id="bootstrap-errors"><a class="header" href="#bootstrap-errors">Bootstrap Errors</a></h2>
+<p>Bootstrap failures must be propagated through the service's standard application result type:</p>
+<pre><pre class="playground"><code class="language-rust"><span class="boring">#![allow(unused)]
+</span><span class="boring">fn main() {
+</span>pub async fn start() -&gt; AppResult&lt;()&gt; {
+    // ...
+}
+<span class="boring">}</span></code></pre></pre>
+<p>Errors encountered while loading configuration, constructing infrastructure, binding the listener, or starting the server must not be silently ignored.</p>
+<h2 id="design-rules"><a class="header" href="#design-rules">Design Rules</a></h2>
+<p>All DiTA Rust backend services must follow these rules:</p>
+<ul>
+<li><code>main.rs</code> must remain a thin entry point.</li>
+<li><code>clap</code> must be used for command-line parsing.</li>
+<li>CLI definitions must reside in <code>infrastructure/cli.rs</code>.</li>
+<li>Bootstrap orchestration must reside in <code>infrastructure/bootstrap.rs</code>.</li>
+<li>Runtime configuration must be represented by a dedicated <code>Config</code> type.</li>
+<li>Shared runtime dependencies must be represented by <code>AppState</code>.</li>
+<li>Configuration loading must remain separate from CLI parsing.</li>
+<li>Business logic must not be implemented in the bootstrap layer.</li>
+<li>Server addresses and other runtime parameters must come from configuration rather than hard-coded values.</li>
+<li>Bootstrap failures must be propagated through the service's standard error handling mechanism.</li>
+</ul>
+<p>This pattern provides a consistent startup contract across all DiTA Rust backend services while keeping the application entry point, CLI, configuration, state management, and infrastructure initialization clearly separated.</p>
 
                     </main>
 
                     <nav class="nav-wrapper" aria-label="Page navigation">
                         <!-- Mobile navigation buttons -->
-                            <a rel="prev" href="../../languages/rust/project-structure.html" class="mobile-nav-chapters previous" title="Previous chapter" aria-label="Previous chapter" aria-keyshortcuts="Left">
+                            <a rel="prev" href="../../languages/rust/configuration.html" class="mobile-nav-chapters previous" title="Previous chapter" aria-label="Previous chapter" aria-keyshortcuts="Left">
                                 <i class="fa fa-angle-left"></i>
                             </a>
 
-                            <a rel="next prefetch" href="../../languages/rust/bootstrap.html" class="mobile-nav-chapters next" title="Next chapter" aria-label="Next chapter" aria-keyshortcuts="Right">
+                            <a rel="next prefetch" href="../../development/index.html" class="mobile-nav-chapters next" title="Next chapter" aria-label="Next chapter" aria-keyshortcuts="Right">
                                 <i class="fa fa-angle-right"></i>
                             </a>
 
@@ -380,11 +391,11 @@ fn get_config_paths(conf_path: &amp;Option&lt;String&gt;) -&gt; Vec&lt;(PathBuf,
             </div>
 
             <nav class="nav-wide-wrapper" aria-label="Page navigation">
-                    <a rel="prev" href="../../languages/rust/project-structure.html" class="nav-chapters previous" title="Previous chapter" aria-label="Previous chapter" aria-keyshortcuts="Left">
+                    <a rel="prev" href="../../languages/rust/configuration.html" class="nav-chapters previous" title="Previous chapter" aria-label="Previous chapter" aria-keyshortcuts="Left">
                         <i class="fa fa-angle-left"></i>
                     </a>
 
-                    <a rel="next prefetch" href="../../languages/rust/bootstrap.html" class="nav-chapters next" title="Next chapter" aria-label="Next chapter" aria-keyshortcuts="Right">
+                    <a rel="next prefetch" href="../../development/index.html" class="nav-chapters next" title="Next chapter" aria-label="Next chapter" aria-keyshortcuts="Right">
                         <i class="fa fa-angle-right"></i>
                     </a>
             </nav>

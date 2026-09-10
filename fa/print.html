@@ -205,6 +205,7 @@
 <ul>
 <li><a href="languages/rust/./project-structure.html">ساختار پروژه</a></li>
 <li><a href="languages/rust/./configuration.html">پیکربندی سرویس‌ها</a></li>
+<li><a href="languages/rust/./bootstrap.html">راه‌اندازی سرویس‌ها</a></li>
 <li><a href="languages/rust/./error-handling.html">مدیریت خطا</a> (اضافه خواهد شد)</li>
 <li><a href="languages/rust/./testing.html">تست</a> (اضافه خواهد شد)</li>
 <li><a href="languages/rust/./async.html">Async/Await</a> (اضافه خواهد شد)</li>
@@ -542,6 +543,203 @@ fn get_config_paths(conf_path: &amp;Option&lt;String&gt;) -&gt; Vec&lt;(PathBuf,
 }
 <span class="boring">}</span></code></pre></pre>
 <p>این الگوی پیاده‌سازی باید در تمام سرویس‌های بک‌اند Rust به‌صورت یکسان استفاده شود.</p>
+<div style="break-before: page; page-break-before: always;"></div><h1 id="راهاندازی-سرویس-rust"><a class="header" href="#راهاندازی-سرویس-rust">راه‌اندازی سرویس Rust</a></h1>
+<p>تمام سرویس‌های بک‌اند Rust در DiTA باید از یک الگوی استاندارد برای راه‌اندازی (Bootstrap) پیروی کنند.</p>
+<p>نقطه‌ی ورود برنامه باید حداقلی باقی بماند. مقداردهی اولیه‌ی سرویس، پردازش خط فرمان، بارگذاری تنظیمات، ساخت وضعیت برنامه، مقداردهی اولیه‌ی Router و راه‌اندازی سرور باید توسط لایه‌ی Bootstrap در لایه‌ی زیرساخت (Infrastructure) مدیریت و هماهنگ شوند.</p>
+<h2 id="معماری"><a class="header" href="#معماری">معماری</a></h2>
+<p>جریان Bootstrap باید از ساختار زیر پیروی کند:</p>
+<pre><code class="language-text">src/
+├── main.rs
+├── infrastructure/
+│   ├── bootstrap.rs
+│   └── cli.rs
+└── shared/
+    ├── config.rs
+    └── state.rs
+</code></pre>
+<p>مسئولیت این ماژول‌ها به شرح زیر است:</p>
+<div class="table-wrapper"><table><thead><tr><th>ماژول</th><th>مسئولیت</th></tr></thead><tbody>
+<tr><td><code>main.rs</code></td><td>نقطه‌ی ورود برنامه</td></tr>
+<tr><td><code>infrastructure/bootstrap.rs</code></td><td>هماهنگ‌سازی فرایند Bootstrap برنامه</td></tr>
+<tr><td><code>infrastructure/cli.rs</code></td><td>تعریف و پردازش رابط خط فرمان</td></tr>
+<tr><td><code>shared/config.rs</code></td><td>مدل تنظیمات برنامه</td></tr>
+<tr><td><code>shared/state.rs</code></td><td>وضعیت مشترک برنامه</td></tr>
+</tbody></table>
+</div>
+<h2 id="نقطهی-ورود-برنامه"><a class="header" href="#نقطهی-ورود-برنامه">نقطه‌ی ورود برنامه</a></h2>
+<p>فایل <code>main.rs</code> باید تنها شامل حداقل کد موردنیاز برای نقطه‌ی ورود برنامه باشد و فرایند راه‌اندازی را به لایه‌ی Bootstrap واگذار کند.</p>
+<pre><pre class="playground"><code class="language-rust">async fn main() -&gt; AppResult&lt;()&gt; {
+    bootstrap::start().await
+}</code></pre></pre>
+<p>منطق کسب‌وکار، پردازش تنظیمات، ساخت Router یا مقداردهی اولیه‌ی زیرساخت نباید مستقیماً در <code>main.rs</code> پیاده‌سازی شود.</p>
+<h2 id="رابط-خط-فرمان"><a class="header" href="#رابط-خط-فرمان">رابط خط فرمان</a></h2>
+<p>تنظیمات مربوط به Bootstrap برنامه باید از طریق یک رابط خط فرمان که با استفاده از <a href="https://docs.rs/clap"><code>clap</code></a> پیاده‌سازی شده است، انجام شود.</p>
+<p>تعریف CLI باید در لایه‌ی زیرساخت قرار داشته باشد:</p>
+<pre><code class="language-text">src/
+└── infrastructure/
+    └── cli.rs
+</code></pre>
+<p>CLI باید از <code>clap::Parser</code> استفاده کند:</p>
+<pre><pre class="playground"><code class="language-rust"><span class="boring">#![allow(unused)]
+</span><span class="boring">fn main() {
+</span>use clap::Parser;
+
+#[derive(Parser)]
+#[command(name = "&lt;app name&gt;")]
+#[command(about = "&lt;App Description&gt;", long_about = None)]
+pub struct Cli {
+    #[arg(short, long, global = true)]
+    pub config: Option&lt;String&gt;,
+
+    // ...
+}
+<span class="boring">}</span></code></pre></pre>
+<p>در فرایند Bootstrap، <code>Cli::parse()</code> باید نقطه‌ی ورود پردازش آرگومان‌های خط فرمان باشد.</p>
+<p>سرویس‌ها می‌توانند متناسب با مسئولیت خود آرگومان‌های خط فرمان دیگری نیز ارائه کنند، اما گزینه‌های CLI باید صرفاً به راه‌اندازی و ملاحظات عملیاتی برنامه محدود باشند.</p>
+<h2 id="بارگذاری-تنظیمات"><a class="header" href="#بارگذاری-تنظیمات">بارگذاری تنظیمات</a></h2>
+<p>آرگومان‌های پردازش‌شده‌ی CLI باید برای تعیین منبع تنظیمات برنامه استفاده شوند.</p>
+<p>بارگذاری تنظیمات باید از تعریف CLI مستقل باشد و از سازوکار استاندارد بارگذاری تنظیمات پروژه استفاده کند.</p>
+<p>مدل تنظیمات باید به‌صورت مستقل تعریف شود:</p>
+<pre><pre class="playground"><code class="language-rust"><span class="boring">#![allow(unused)]
+</span><span class="boring">fn main() {
+</span>use serde::Deserialize;
+use std::net::SocketAddr;
+
+#[derive(Clone, Debug, Deserialize)]
+pub struct Config {
+    pub listen_addr: SocketAddr,
+
+    // ...
+}
+<span class="boring">}</span></code></pre></pre>
+<p>لایه‌ی Bootstrap مسئول اتصال مسیر تنظیمات دریافت‌شده از CLI به Configuration Loader است:</p>
+<pre><pre class="playground"><code class="language-rust"><span class="boring">#![allow(unused)]
+</span><span class="boring">fn main() {
+</span>let cli = Cli::parse();
+let conf_path = cli.config;
+let config: Config = config_loader::load(&amp;conf_path);
+<span class="boring">}</span></code></pre></pre>
+<p>مدل تنظیمات نباید به <code>clap</code> وابسته باشد و مدل CLI نیز نباید شامل وضعیت Runtime برنامه باشد.</p>
+<h2 id="هماهنگسازی-bootstrap"><a class="header" href="#هماهنگسازی-bootstrap">هماهنگ‌سازی Bootstrap</a></h2>
+<p>تمام عملیات مربوط به راه‌اندازی سرویس باید توسط <code>infrastructure/bootstrap.rs</code> هماهنگ شوند.</p>
+<p>تابع Bootstrap باید مقداردهی اولیه را با ترتیب مشخص زیر انجام دهد:</p>
+<ol>
+<li>پردازش آرگومان‌های خط فرمان.</li>
+<li>بارگذاری تنظیمات برنامه.</li>
+<li>ایجاد وضعیت برنامه.</li>
+<li>مقداردهی اولیه‌ی اجزای برنامه و وابستگی‌های زیرساختی.</li>
+<li>ساخت Router و Middlewareها.</li>
+<li>Bind کردن Listener سرور.</li>
+<li>راه‌اندازی سرور HTTP.</li>
+</ol>
+<p>یک پیاده‌سازی معمول به شکل زیر است:</p>
+<pre><pre class="playground"><code class="language-rust"><span class="boring">#![allow(unused)]
+</span><span class="boring">fn main() {
+</span>pub async fn start() -&gt; AppResult&lt;()&gt; {
+    telemetry::init();
+    info!("Starting &lt;service name&gt;...");
+
+    let cli = Cli::parse();
+    let conf_path = cli.config;
+    let config: Config = config_loader::load(&amp;conf_path);
+
+    let state = AppState {
+        config: config.clone(),
+        // ...
+    };
+
+    let app = router()
+        .with_state(Arc::new(state))
+        .layer(TraceLayer::new_for_http());
+
+    let listener = tokio::net::TcpListener::bind(&amp;config.listen_addr).await?;
+
+    info!(
+        "Listening -&gt; SUCCESS: listen_addr=({})",
+        config.listen_addr
+    );
+
+    axum::serve(listener, app).await?;
+
+    info!(
+        "Axum Serve -&gt; SUCCESS: listen_addr=({})",
+        config.listen_addr
+    );
+
+    Ok(())
+}
+<span class="boring">}</span></code></pre></pre>
+<p>وظیفه‌ی تابع Bootstrap صرفاً هماهنگ‌سازی این مراحل است. این تابع نباید به محلی برای قرار دادن منطق کسب‌وکار یا رفتارهای اختصاصی دامنه‌ی برنامه تبدیل شود.</p>
+<h2 id="وضعیت-مشترک-برنامه"><a class="header" href="#وضعیت-مشترک-برنامه">وضعیت مشترک برنامه</a></h2>
+<p>وضعیت Runtime سراسری برنامه باید توسط <code>AppState</code> نمایش داده شود و به‌صورت جداگانه از پیاده‌سازی Bootstrap تعریف شود:</p>
+<pre><code class="language-text">src/
+└── shared/
+    └── state.rs
+</code></pre>
+<p>نمونه:</p>
+<pre><pre class="playground"><code class="language-rust"><span class="boring">#![allow(unused)]
+</span><span class="boring">fn main() {
+</span>pub struct AppState {
+    pub config: Config,
+
+    // ...
+}
+<span class="boring">}</span></code></pre></pre>
+<p>لایه‌ی Bootstrap وضعیت اولیه‌ی <code>AppState</code> را ایجاد کرده و آن را در اختیار اجزای برنامه‌ای که به وضعیت مشترک نیاز دارند قرار می‌دهد.</p>
+<p><code>AppState</code> باید شامل وابستگی‌های Runtime و داده‌های مشترک برنامه باشد و نباید شامل دغدغه‌های مربوط به پردازش خط فرمان باشد.</p>
+<h2 id="مرزهای-وابستگی"><a class="header" href="#مرزهای-وابستگی">مرزهای وابستگی</a></h2>
+<p>مرزهای زیر باید حفظ شوند:</p>
+<pre><code class="language-text">main.rs
+   │
+   ▼
+bootstrap.rs
+   │
+   ├──► cli.rs
+   ├──► config_loader
+   ├──► Config
+   ├──► AppState
+   └──► application infrastructure
+</code></pre>
+<p>CLI، مدل تنظیمات و وضعیت برنامه هرکدام مسئولیت مستقلی دارند:</p>
+<ul>
+<li><code>cli.rs</code> نحوه‌ی ارائه‌ی پارامترهای راه‌اندازی را تعریف می‌کند.</li>
+<li><code>config.rs</code> تنظیمات Runtime برنامه را تعریف می‌کند.</li>
+<li><code>state.rs</code> وضعیت Runtime مشترک برنامه را تعریف می‌کند.</li>
+<li><code>bootstrap.rs</code> این اجزا را به یکدیگر متصل کرده و سرویس را راه‌اندازی می‌کند.</li>
+</ul>
+<h2 id="راهاندازی-سرور-http"><a class="header" href="#راهاندازی-سرور-http">راه‌اندازی سرور HTTP</a></h2>
+<p>ساخت و راه‌اندازی سرور HTTP باید توسط لایه‌ی Bootstrap انجام شود.</p>
+<p>برای سرویس‌های مبتنی بر Axum:</p>
+<pre><pre class="playground"><code class="language-rust"><span class="boring">#![allow(unused)]
+</span><span class="boring">fn main() {
+</span>let listener = tokio::net::TcpListener::bind(&amp;config.listen_addr).await?;
+axum::serve(listener, app).await?;
+<span class="boring">}</span></code></pre></pre>
+<p>آدرس Listener باید از تنظیمات برنامه تأمین شود و نباید به‌صورت Hard-coded در پیاده‌سازی Bootstrap قرار گیرد.</p>
+<h2 id="خطاهای-bootstrap"><a class="header" href="#خطاهای-bootstrap">خطاهای Bootstrap</a></h2>
+<p>خطاهای مربوط به Bootstrap باید از طریق نوع استاندارد نتیجه‌ی برنامه‌ی سرویس منتقل شوند:</p>
+<pre><pre class="playground"><code class="language-rust"><span class="boring">#![allow(unused)]
+</span><span class="boring">fn main() {
+</span>pub async fn start() -&gt; AppResult&lt;()&gt; {
+    // ...
+}
+<span class="boring">}</span></code></pre></pre>
+<p>خطاهایی که هنگام بارگذاری تنظیمات، ساخت زیرساخت، Bind کردن Listener یا راه‌اندازی سرور رخ می‌دهند نباید نادیده گرفته شوند.</p>
+<h2 id="قوانین-طراحی"><a class="header" href="#قوانین-طراحی">قوانین طراحی</a></h2>
+<p>تمام سرویس‌های بک‌اند Rust در DiTA باید از قوانین زیر پیروی کنند:</p>
+<ul>
+<li><code>main.rs</code> باید یک نقطه‌ی ورود حداقلی و نازک (Thin Entry Point) باقی بماند.</li>
+<li>برای پردازش آرگومان‌های خط فرمان باید از <code>clap</code> استفاده شود.</li>
+<li>تعریف CLI باید در <code>infrastructure/cli.rs</code> قرار داشته باشد.</li>
+<li>هماهنگ‌سازی Bootstrap باید در <code>infrastructure/bootstrap.rs</code> قرار داشته باشد.</li>
+<li>تنظیمات Runtime باید توسط یک نوع مستقل به نام <code>Config</code> نمایش داده شوند.</li>
+<li>وابستگی‌های Runtime مشترک باید توسط <code>AppState</code> نمایش داده شوند.</li>
+<li>بارگذاری تنظیمات باید از پردازش CLI مستقل باقی بماند.</li>
+<li>منطق کسب‌وکار نباید در لایه‌ی Bootstrap پیاده‌سازی شود.</li>
+<li>آدرس سرور و سایر پارامترهای Runtime باید از تنظیمات برنامه تأمین شوند و نباید Hard-coded باشند.</li>
+<li>خطاهای Bootstrap باید از طریق سازوکار استاندارد مدیریت خطای سرویس منتقل شوند.</li>
+</ul>
+<p>این الگو یک قرارداد یکسان برای راه‌اندازی تمام سرویس‌های بک‌اند Rust در DiTA فراهم می‌کند و در عین حال نقطه‌ی ورود برنامه، CLI، تنظیمات، مدیریت State و مقداردهی اولیه‌ی زیرساخت را از یکدیگر به‌صورت شفاف جدا نگه می‌دارد.</p>
 <div style="break-before: page; page-break-before: always;"></div><h1 id="راهنمای-توسعه"><a class="header" href="#راهنمای-توسعه">راهنمای توسعه</a></h1>
 <ul>
 <li><a href="development/./git-workflow.html">جریان کاری گیت</a></li>
