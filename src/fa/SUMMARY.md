@@ -3,6 +3,7 @@
 - [زبان‌ها](languages/README.md)
   - [Rust](languages/rust/README.md)
     - [ساختار پروژه](languages/rust/project-structure.md)
+    - [پیکربندی سرویس‌ها](languages/rust/configuration.md)
 
 - [توسعه](development/README.md)
   - [سوابق تصمیم‌گیری](development/decision-records.md)

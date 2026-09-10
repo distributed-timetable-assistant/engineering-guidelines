@@ -3,6 +3,7 @@
 - [Languages](languages/README.md)
   - [Rust](languages/rust/README.md)
     - [Project Structure](languages/rust/project-structure.md)
+    - [Service Configuration](languages/rust/configuration.md)
 
 - [Development](development/README.md)
   - [Decision Records](development/decision-records.md)
