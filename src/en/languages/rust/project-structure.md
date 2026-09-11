@@ -110,6 +110,7 @@ After the tree I describe the purpose and accepted contents of each entry so mai
 │   │   ├── db.rs                 # Postgres connection builder
 │   │   ├── cache.rs              # Redis pool builder
 │   │   ├── kafka.rs              # Kafka setup
+│   │   ├── cli.rs                # Command-line interface definition and parsing
 │   │   ├── server/               # Axum + Tonic server builders
 │   │   │   ├── http_server.rs
 │   │   │   ├── grpc_server.rs
@@ -124,6 +125,8 @@ After the tree I describe the purpose and accepted contents of each entry so mai
 │   │   ├── error.rs              # unified AppError type
 │   │   ├── json.rs               # serde/json helpers
 │   │   ├── time.rs               # chrono/date helpers
+│   │   ├── config.rs             # Application configuration model
+│   │   ├── state.rs
 │   │   └── result.rs             # functional Result combinators / error adapters
 │   │
 │   ├── tests/                    # Integration & E2E tests
