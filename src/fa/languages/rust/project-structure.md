@@ -23,12 +23,6 @@
 │   ├── instructor.proto
 │   └── common.proto
 │
-├── config/                       # پیکربندی مختص محیط
-│   ├── application.yml
-│   ├── application-dev.yml
-│   ├── application-stage.yml
-│   └── application-prod.yml
-│
 ├── scripts/                      # اسکریپت‌های کمکی توسعه و عملیات (مهاجرت، سید، اجرای محلی)
 │   ├── migrate.sh
 │   ├── seed.sh
@@ -112,9 +106,7 @@
 │   │   
 │   ├── infrastructure/           # ❖ ریشه ترکیب: سیم‌کشی + سازنده‌ها + تنظیمات ران‌تایم
 │   │   ├── bootstrap.rs          # ارکستراسیون شروع برنامه
-│   │   ├── config/               # بارگذاری پیکربندی با استفاده از crate ِ config (YAML + متغیرهای محیطی)
-│   │   │   ├── loader.rs
-│   │   │   └── mod.rs
+│   │   ├── config-loader.rs      # بارگذاری پیکربندی با استفاده از crate ِ config (YAML + متغیرهای محیطی)
 │   │   ├── db.rs                 # سازنده اتصال پستگرس
 │   │   ├── cache.rs              # سازنده استخر ردیس
 │   │   ├── kafka.rs              # تنظیمات کافکا
@@ -145,6 +137,10 @@
 │   │   
 │   └── lib.rs                    # اختیاری اگر سرویس توابع کتابخانه داخلی را در معرض قرار دهد
 │
+├── config.yml
+├── config-dev.yml
+├── config-stage.yml
+├── config-prod.yml
 ├── Cargo.toml
 └── README.md
 ```

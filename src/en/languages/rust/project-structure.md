@@ -23,12 +23,6 @@ After the tree I describe the purpose and accepted contents of each entry so mai
 │   ├── instructor.proto
 │   └── common.proto
 │
-├── config/                       # Environment-specific configuration
-│   ├── application.yml
-│   ├── application-dev.yml
-│   ├── application-stage.yml
-│   └── application-prod.yml
-│
 ├── scripts/                      # Dev & Ops helper scripts (migrate, seed, local-run)
 │   ├── migrate.sh
 │   ├── seed.sh
@@ -112,9 +106,7 @@ After the tree I describe the purpose and accepted contents of each entry so mai
 │   │
 │   ├── infrastructure/           # ❖ Composition root: wiring + builders + runtime setup
 │   │   ├── bootstrap.rs          # app startup orchestration
-│   │   ├── config/               # config loader using `config` crate (YAML + env)
-│   │   │   ├── loader.rs
-│   │   │   └── mod.rs
+│   │   ├── config-loader.rs      # config loader using `config` crate (YAML + env)
 │   │   ├── db.rs                 # Postgres connection builder
 │   │   ├── cache.rs              # Redis pool builder
 │   │   ├── kafka.rs              # Kafka setup
@@ -145,6 +137,10 @@ After the tree I describe the purpose and accepted contents of each entry so mai
 │   │
 │   └── lib.rs                    # Optional if the service exposes internal lib functions
 │
+├── config.yml
+├── config-dev.yml
+├── config-stage.yml
+├── config-prod.yml
 ├── Cargo.toml
 └── README.md
 ```
